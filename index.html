@@ -108,7 +108,7 @@ h2 em,h1 em{font-family:var(--serif);font-style:italic;font-weight:400;letter-sp
 /* SANDBOX */
 .sand{display:grid;grid-template-columns:1fr 300px;gap:18px;margin-top:26px}
 .sand-canvas{position:relative;overflow:hidden;min-height:420px}
-#ball{width:100%;height:100%;display:block;position:absolute;inset:0}
+#ball,#mjC{width:100%;height:100%;display:block;position:absolute;inset:0}
 .sand-ctrl{padding:22px;display:flex;flex-direction:column;gap:16px}
 .ctl label{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:6px}
 .ctl label b{font-family:var(--mono);color:var(--ink);font-weight:400}
@@ -373,7 +373,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 <div class="grain"></div>
 <div id="progress"></div>
 <nav id="dots" aria-label="Scenes"></nav>
-<div id="counter"><b>01</b> / 15</div>
+<div id="counter"><b>01</b> / 16</div>
 <div id="hint"><kbd>↑</kbd> <kbd>↓</kbd> or scroll · <kbd>D</kbd> dream mode</div>
 
 <main>
@@ -386,8 +386,8 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
     <p class="lede rv" style="--d:3">AI that doesn't just <b>describe</b> the world, it <b>simulates</b> it. It can predict what happens next, imagine "what if", and plan before it acts.</p>
     <div class="typed rv" style="--d:4" id="typed"></div>
     <div class="hero-meta rv" style="--d:5">
-      <div><b>15 scenes</b>Scroll or use arrow keys</div>
-      <div><b>6 live demos</b>Drag, click, break things</div>
+      <div><b>16 scenes</b>Scroll or use arrow keys</div>
+      <div><b>7 live demos</b>Drag, click, break things</div>
       <div><b>40+ systems</b>Open and closed, all mapped</div>
     </div>
   </div>
@@ -699,10 +699,48 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
   </div>
 </section>
 
+<!-- 8d MUJOCO: LEARN A WORLD MODEL FROM REAL PHYSICS -->
+<section class="scene" id="mujoco" data-title="MuJoCo demo" data-shape="5">
+  <div class="wrap">
+    <div class="eyebrow rv">10 — Build one: MuJoCo + a learned model</div>
+    <h2 class="rv" style="--d:1">MuJoCo is the <em>world</em>. The robot learns its own model of it.</h2>
+    <p class="lede rv" style="--d:2">This is <b>real MuJoCo 3.14</b>, DeepMind's physics engine, compiled to WebAssembly and running in your browser. It plays the role of reality. The agent never sees MuJoCo's equations. It <b>explores</b> with random pushes, <b>fits</b> a world model Δs = f(s, a) from those transitions, then <b>imagines</b> 64 futures every 40 ms to swing the pole up. This is the same recipe as PETS, TD-MPC and Dreamer on the DeepMind Control Suite.</p>
+    <div class="sand rv" style="--d:3">
+      <div class="panel sand-canvas">
+        <div class="legend"><span><i style="background:#9b7bff"></i>imagined futures</span><span><i style="background:#5ef2ff"></i>chosen plan</span><span><i style="background:#ffb547"></i>MuJoCo reality</span></div>
+        <canvas id="mjC"></canvas>
+      </div>
+      <div class="panel sand-ctrl">
+        <div class="log" id="mjStatus">MuJoCo loads when you reach this scene (about 9 MB of WebAssembly).</div>
+        <div style="display:grid;gap:8px">
+          <button class="btn" id="mjExplore">1 · Explore with random actions</button>
+          <button class="btn" id="mjFit">2 · Fit the world model</button>
+          <button class="btn primary" id="mjCtrl">3 · Imagine &amp; control ✦</button>
+          <div style="display:flex;gap:8px"><button class="btn" id="mjPush" style="flex:1">Push the pole</button><button class="btn" id="mjReset" style="flex:1">Reset</button></div>
+        </div>
+        <div class="stats">
+          <div class="stat"><small>Transitions</small><b id="mjN">0</b></div>
+          <div class="stat"><small>1-step error</small><b id="mjErr">—</b></div>
+          <div class="stat"><small>Upright</small><b id="mjUp">—</b></div>
+          <div class="stat"><small>Plan time</small><b id="mjMs">—</b></div>
+        </div>
+        <div><div style="font-size:11px;color:var(--muted);font-family:var(--mono)">cos θ: <span style="color:#ffb547">reality</span> vs <span style="color:#9b7bff">predicted 1 s earlier</span></div><canvas id="mjChart" style="width:100%;height:80px;display:block"></canvas></div>
+        <div class="log" id="mjLog">Try Control with no data at all. It flails for 4 seconds, fits its first model from what it saw, then teaches itself to swing up.</div>
+      </div>
+    </div>
+    <div class="three rv" style="--d:4">
+      <div><span class="k">reality</span><b>MuJoCo (WASM)</b>Cart-pole with RK4 at 100 Hz, about 17 µs per step. The agent only gets (s, a, s′) samples.</div>
+      <div><span class="k">world model</span><b>200 random cosine features + ridge regression</b>A one-hidden-layer network whose output layer is solved in closed form, then refit online as new data arrives.</div>
+      <div><span class="k">planner</span><b>MPPI in imagination</b>64 action sequences × 1.6 s are rolled out in the learned model. The best ones are averaged, the first action is applied, and it repeats.</div>
+    </div>
+    <p class="lede rv" style="--d:5;margin-top:16px;font-size:14px">Prefer Python? The same pipeline is in <a href="examples/mujoco_world_model.py" target="_blank" rel="noopener">examples/mujoco_world_model.py</a>. Run it with <code style="font-family:var(--mono);color:var(--ink)">uv run --with mujoco --with numpy python examples/mujoco_world_model.py --view</code></p>
+  </div>
+</section>
+
 <!-- 9 LANDSCAPE -->
 <section class="scene" id="software" data-title="Software map" data-shape="3">
   <div class="wrap">
-    <div class="eyebrow rv">10 — The landscape</div>
+    <div class="eyebrow rv">11 — The landscape</div>
     <h2 class="rv" style="--d:1">Every tool you can <em>use</em> today</h2>
     <p class="lede rv" style="--d:2">Filter by access level or category, or search. A green badge means fully open source, cyan means open weights, pink means closed or API-only, and amber marks simulators and engines.</p>
     <div class="ls-ctrl rv" style="--d:3">
@@ -723,7 +761,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 <!-- 10 GET STARTED -->
 <section class="scene" id="start" data-title="Get started" data-shape="4">
   <div class="wrap">
-    <div class="eyebrow rv">11 — Open source, hands-on</div>
+    <div class="eyebrow rv">12 — Open source, hands-on</div>
     <h2 class="rv" style="--d:1">Pick a path, <em>run</em> something tonight</h2>
     <div class="gs">
       <div class="panel paths rv" style="--d:2" id="paths"><h3>I want to…</h3></div>
@@ -739,7 +777,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 <!-- 11 CHALLENGES -->
 <section class="scene" id="challenges" data-title="Challenges" data-shape="2">
   <div class="wrap">
-    <div class="eyebrow rv">12 — The hard parts</div>
+    <div class="eyebrow rv">13 — The hard parts</div>
     <h2 class="rv" style="--d:1">Small errors, <em>compounded</em></h2>
     <p class="lede rv" style="--d:2">A world model feeds its own predictions back in as input. A 1% error per step doesn't stay at 1%. Move the slider, then switch on observations to see why closed-loop grounding matters.</p>
     <div class="ch">
@@ -758,7 +796,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 <!-- 12 FUTURE / CLOSE -->
 <section class="scene" id="future" data-title="What's next" data-shape="5">
   <div class="wrap">
-    <div class="eyebrow rv">13 — Looking ahead</div>
+    <div class="eyebrow rv">14 — Looking ahead</div>
     <h2 class="rv" style="--d:1">Where this is <em>heading</em></h2>
     <div class="fut">
       <div class="panel fu rv" style="--d:2"><h4>LLM + world model fusion</h4><p>Language for reasoning, a world model for physics. Vision-language-action models (Gemini Robotics, GR00T, π0) are the first step.</p></div>
@@ -1451,13 +1489,14 @@ git clone https://github.com/nvidia-cosmos/cosmos-predict2
 # follow the repo README: download checkpoints, then run
 # video-to-world / text-to-world inference`,
     why: "<b>Best for:</b> synthetic data for robots and AVs. Needs a large NVIDIA GPU; check the repo for current versions." },
-  { t: "Simulate physics precisely", s: "classic simulator", title: "MuJoCo", code:
-`pip install mujoco
-# open the interactive viewer
-python -m mujoco.viewer
-# drag a model XML from mujoco/model/ into the window,
-# or try MJX for massively parallel simulation in JAX`,
-    why: "<b>Best for:</b> robot learning baselines, and as ground truth to compare your learned world model against." }
+  { t: "Learn a world model from MuJoCo", s: "simulator + learned model", title: "MuJoCo · examples/mujoco_world_model.py", code:
+`git clone https://github.com/kanaaraman/world-models-presentation
+cd world-models-presentation/examples
+# explore -> fit world model -> imagine & control (cart-pole)
+uv run --with mujoco --with numpy python mujoco_world_model.py
+# watch it live in the MuJoCo viewer
+uv run --with mujoco --with numpy python mujoco_world_model.py --view`,
+    why: "<b>Best for:</b> seeing the whole model-based loop in about 200 lines. Swings up in about 2 s and holds 100% upright on a laptop CPU. It's the same pipeline as scene 10." }
 ];
 let pIdx = 1;
 const pathsEl = $("#paths");
@@ -1778,17 +1817,198 @@ function drawRW(now) {
   ctx.fillText(`crate ${m.toFixed(2)} kg${m > HEAVY ? " · heavy" : ""}`, w - 130, 20);
 }
 
+/* ============ MUJOCO: learn a world model from real physics ============ */
+const MJ_URL = "https://cdn.jsdelivr.net/npm/@mujoco/mujoco@3.14.0/mujoco.js";
+const MJ_XML = `<mujoco model="cartpole">
+  <option timestep="0.01" integrator="RK4"/>
+  <worldbody>
+    <body name="cart" pos="0 0 1">
+      <joint name="slider" type="slide" axis="1 0 0" limited="true" range="-2.6 2.6" damping="0.0005"/>
+      <geom type="box" size=".2 .15 .1" mass="1" contype="0" conaffinity="0"/>
+      <body name="pole">
+        <joint name="hinge" type="hinge" axis="0 1 0" damping="0.0002"/>
+        <geom type="capsule" fromto="0 0 0 0 0 1" size=".045" mass=".1" contype="0" conaffinity="0"/>
+      </body>
+    </body>
+  </worldbody>
+  <actuator><motor joint="slider" gear="10" ctrllimited="true" ctrlrange="-1 1"/></actuator>
+</mujoco>`;
+const MJS = { mj: null, m: null, d: null, loading: false, mode: "idle", u: 0, k: 0, ep: 0, hist: [], predQ: [], plans: [], best: null, ms: 0, up: [] };
+const SUB = 4, CTRL_DT = .04; // 4 MuJoCo steps of 10 ms per control step
+async function mjLoad() {
+  if (MJS.mj || MJS.loading) return; MJS.loading = true;
+  $("#mjStatus").textContent = "Loading MuJoCo WebAssembly…";
+  try {
+    const { default: loadMujoco } = await import(MJ_URL);
+    MJS.mj = await loadMujoco();
+    MJS.m = MJS.mj.MjModel.from_xml_string(MJ_XML); MJS.d = new MJS.mj.MjData(MJS.m);
+    mjHang();
+    $("#mjStatus").innerHTML = `<span style="color:var(--green)">●</span> MuJoCo 3.14 running (WASM) · nq=${MJS.m.nq}, nu=${MJS.m.nu}, dt=${MJS.m.opt.timestep}s`;
+  } catch (e) {
+    $("#mjStatus").textContent = "Couldn't load MuJoCo from the CDN (" + (e && e.message || e) + "). Try the Python version linked below.";
+  }
+  MJS.loading = false;
+}
+const mjState = () => { const d = MJS.d; return [d.qpos[0], d.qpos[1], d.qvel[0], d.qvel[1]]; };
+function mjStep(u) { const { mj, m, d } = MJS; d.ctrl[0] = u; for (let i = 0; i < SUB; i++) mj.mj_step(m, d); }
+function mjHang() { const { mj, m, d } = MJS; mj.mj_resetData(m, d); d.qpos[1] = Math.PI; mj.mj_forward(m, d); MJS.U.fill(0); }
+function mjRandomState() { const { mj, m, d } = MJS; mj.mj_resetData(m, d); d.qpos[0] = Math.random() * 2 - 1; d.qpos[1] = (Math.random() * 2 - 1) * Math.PI; d.qvel[0] = randn(); d.qvel[1] = randn() * 3; mj.mj_forward(m, d); }
+
+// World model: random Fourier features (fixed hidden layer) + ridge-regression output layer
+const WM = (() => {
+  const D = 200, IN = 6, F = D + IN + 1, OUT = 4, ELL = .9, SC = [2, 1, 1, 4, 8, 1], OSC = [.2, .3, 1, 2];
+  const W = Array.from({ length: D }, () => Array.from({ length: IN }, () => randn() / ELL)), Bb = Array.from({ length: D }, () => Math.random() * 2 * Math.PI);
+  let A, Y, Wo, N, val; const phiT = new Float64Array(F), phiP = new Float64Array(F), k2 = Math.sqrt(2 / D);
+  function reset() { A = new Float64Array(F * F); Y = new Float64Array(F * OUT); Wo = new Float64Array(F * OUT); N = 0; val = []; api.fitted = false; }
+  function feat(s, u, phi) {
+    const z0 = s[0] / SC[0], z1 = Math.cos(s[1]), z2 = Math.sin(s[1]), z3 = s[2] / SC[3], z4 = s[3] / SC[4], z5 = u;
+    for (let j = 0; j < D; j++) { const w = W[j]; phi[j] = k2 * Math.cos(w[0] * z0 + w[1] * z1 + w[2] * z2 + w[3] * z3 + w[4] * z4 + w[5] * z5 + Bb[j]); }
+    phi[D] = z0; phi[D + 1] = z1; phi[D + 2] = z2; phi[D + 3] = z3; phi[D + 4] = z4; phi[D + 5] = z5; phi[D + 6] = 1;
+  }
+  function add(s, u, s2) {
+    if ((N + val.length) % 10 === 9 && val.length < 300) { val.push([s, u, s2]); return; } // hold out for validation
+    feat(s, u, phiT); const y = [0, 1, 2, 3].map(o => (s2[o] - s[o]) / OSC[o]);
+    for (let i = 0; i < F; i++) { const p = phiT[i]; for (let j = i; j < F; j++) A[i * F + j] += p * phiT[j]; for (let o = 0; o < OUT; o++) Y[i * OUT + o] += p * y[o]; }
+    N++;
+  }
+  function fit() {
+    const L = new Float64Array(F * F), lam = 1e-3 * Math.max(1, N * 1e-3);
+    for (let i = 0; i < F; i++) for (let j = i; j < F; j++) { const v = A[i * F + j] + (i === j ? lam : 0); L[i * F + j] = v; L[j * F + i] = v; }
+    for (let j = 0; j < F; j++) { // Cholesky
+      let s = L[j * F + j]; for (let k = 0; k < j; k++) s -= L[j * F + k] ** 2; s = Math.sqrt(Math.max(s, 1e-12)); L[j * F + j] = s;
+      for (let i = j + 1; i < F; i++) { let t = L[i * F + j]; for (let k = 0; k < j; k++) t -= L[i * F + k] * L[j * F + k]; L[i * F + j] = t / s; }
+    }
+    const y = new Float64Array(F);
+    for (let o = 0; o < OUT; o++) {
+      for (let i = 0; i < F; i++) { let t = Y[i * OUT + o]; for (let k = 0; k < i; k++) t -= L[i * F + k] * y[k]; y[i] = t / L[i * F + i]; }
+      for (let i = F - 1; i >= 0; i--) { let t = y[i]; for (let k = i + 1; k < F; k++) t -= L[k * F + i] * Wo[k * OUT + o]; Wo[i * OUT + o] = t / L[i * F + i]; }
+    }
+    api.fitted = true;
+    if (!val.length) return null;
+    let e = 0; const out = [0, 0, 0, 0]; val.forEach(([s, u, s2]) => { pred(s, u, out); e += (out[3] - s2[3]) ** 2; });
+    return Math.sqrt(e / val.length);
+  }
+  function pred(s, u, out) { feat(s, u, phiP); for (let o = 0; o < OUT; o++) { let v = 0; for (let i = 0; i < F; i++) v += phiP[i] * Wo[i * OUT + o]; out[o] = s[o] + v * OSC[o]; } return out; }
+  const api = { reset, add, fit, pred, get N() { return N; }, fitted: false };
+  reset();
+  return api;
+})();
+
+// MPPI planner that only ever queries the learned model
+const MH = 40, MK = 64; MJS.U = new Float64Array(MH);
+function mjPlan(s0) {
+  const out = [0, 0, 0, 0], costs = new Float64Array(MK), eps = [], trajs = [];
+  for (let k = 0; k < MK; k++) {
+    const e = new Float64Array(MH), tr = []; let s = s0.slice(), c = 0;
+    for (let h = 0; h < MH; h++) {
+      const uu = Math.max(-1, Math.min(1, MJS.U[h] + .5 * randn())); e[h] = uu - MJS.U[h];
+      WM.pred(s, uu, out); s = [out[0], out[1], out[2], out[3]]; if (h % 2) tr.push([s[0], s[1]]);
+      c += -Math.cos(s[1]) + .25 * s[0] * s[0] + .002 * s[3] * s[3] + .01 * uu * uu + (Math.abs(s[0]) > 2.2 ? 5 : 0);
+    }
+    costs[k] = c; eps.push(e); trajs.push(tr);
+  }
+  let mn = Infinity, mx = -Infinity; costs.forEach(c => { mn = Math.min(mn, c); mx = Math.max(mx, c); });
+  const lam = Math.max(1e-6, mx - mn) / 30; let ws = 0; const w = Array.from(costs, c => { const v = Math.exp(-(c - mn) / lam); ws += v; return v; });
+  for (let h = 0; h < MH; h++) { let a = 0; for (let k = 0; k < MK; k++) a += w[k] * eps[k][h]; MJS.U[h] = Math.max(-1, Math.min(1, MJS.U[h] + a / ws)); }
+  // the chosen plan, imagined
+  const best = []; let s = s0.slice(); for (let h = 0; h < MH; h++) { WM.pred(s, MJS.U[h], out); s = [out[0], out[1], out[2], out[3]]; best.push([s[0], s[1]]); }
+  MJS.plans = trajs.map((t, k) => [t, w[k] / ws]).sort((a, b) => b[1] - a[1]).slice(0, 14);
+  MJS.best = best;
+  const a0 = MJS.U[0]; MJS.U.copyWithin(0, 1); MJS.U[MH - 1] = 0; return a0;
+}
+function mjMode(m) {
+  MJS.mode = m;
+  $$("#mjExplore,#mjCtrl").forEach(b => b.classList.toggle("primary", (b.id === "mjExplore" && m === "explore") || (b.id === "mjCtrl" && m !== "explore")));
+}
+$("#mjExplore").onclick = async () => { await mjLoad(); if (!MJS.mj) return; MJS.ep = 0; MJS.k = 0; mjRandomState(); MJS.plans = []; MJS.best = null; mjMode("explore"); $("#mjLog").textContent = "Exploring: random, smoothed pushes from random start states. Every step is a (state, action, next state) sample."; };
+$("#mjFit").onclick = async () => {
+  await mjLoad(); if (!MJS.mj) return;
+  if (!WM.N) { $("#mjLog").textContent = "No data yet. Explore first."; return; }
+  const t = performance.now(), e = WM.fit();
+  $("#mjErr").textContent = e === null ? "—" : e.toFixed(3) + " rad/s";
+  $("#mjLog").textContent = `Fitted on ${WM.N} transitions in ${(performance.now() - t).toFixed(0)} ms. Held-out 1-step error for θ̇: ${e === null ? "n/a" : e.toFixed(3) + " rad/s"}.`;
+};
+$("#mjCtrl").onclick = async () => {
+  await mjLoad(); if (!MJS.mj) return;
+  if (!WM.fitted) { if (WM.N) $("#mjFit").onclick(); }
+  mjHang(); MJS.hist = []; MJS.predQ = []; MJS.up = []; MJS.k = 0; mjMode("control");
+  $("#mjLog").textContent = !WM.N ? "No model yet: acting randomly. After 100 steps it fits its first world model from that experience."
+    : WM.N < 300 ? `Only ${WM.N} transitions, so the first swings are clumsy. Every step is new training data, and it refits every 4 s.`
+    : "Imagining 64 futures per step in the learned model, acting in MuJoCo, and learning online.";
+};
+$("#mjPush").onclick = () => { if (!MJS.d) return; MJS.d.qvel[1] += (Math.random() < .5 ? -1 : 1) * (3 + Math.random() * 2); $("#mjLog").textContent = "Pushed! The agent re-plans from the new state in its imagination."; };
+$("#mjReset").onclick = async () => { await mjLoad(); if (!MJS.mj) return; WM.reset(); mjHang(); mjMode("idle"); MJS.plans = []; MJS.best = null; MJS.hist = []; MJS.predQ = []; $("#mjN").textContent = "0"; $("#mjErr").textContent = "—"; $("#mjUp").textContent = "—"; $("#mjMs").textContent = "—"; $("#mjLog").textContent = "World model erased. The agent knows nothing about physics again."; };
+
+function mjTick() {
+  if (!MJS.mj) return;
+  if (MJS.mode === "explore") {
+    for (let r = 0; r < 4; r++) {
+      MJS.u = Math.max(-1, Math.min(1, .7 * MJS.u + .6 * randn()));
+      const s = mjState(); mjStep(MJS.u); const s2 = mjState();
+      if (Math.abs(s2[0]) > 2.4 || ++MJS.k >= 100) { MJS.k = 0; MJS.ep++; mjRandomState(); if (MJS.ep >= 12) { mjMode("idle"); $("#mjLog").textContent = `Explored 12 episodes (${WM.N} transitions so far). Now fit the world model.`; break; } }
+      else WM.add(s, MJS.u, s2);
+    }
+  } else if (MJS.mode === "control") {
+    const s = mjState(), t = performance.now(), a = WM.fitted ? mjPlan(s) : Math.max(-1, Math.min(1, randn() * .5));
+    MJS.ms = MJS.ms * .9 + (performance.now() - t) * .1;
+    mjStep(a); WM.add(s, a, mjState()); MJS.k++;
+    if (MJS.k % 100 === 0 && WM.N) { const e = WM.fit(); if (e !== null) $("#mjErr").textContent = e.toFixed(3) + " rad/s"; }
+    const c = Math.cos(MJS.d.qpos[1]); MJS.hist.push(c); if (MJS.hist.length > 250) MJS.hist.shift();
+    MJS.predQ.push(MJS.best ? Math.cos(MJS.best[24][1]) : null); if (MJS.predQ.length > 275) MJS.predQ.shift();
+    MJS.up.push(c > .9 ? 1 : 0); if (MJS.up.length > 125) MJS.up.shift();
+    $("#mjUp").textContent = Math.round(MJS.up.reduce((x, y) => x + y, 0) / MJS.up.length * 100) + "%";
+    $("#mjMs").textContent = MJS.ms.toFixed(1) + " ms";
+  }
+  $("#mjN").textContent = WM.N.toLocaleString();
+}
+function drawMJ() {
+  mjTick();
+  const { ctx, w, h } = fitCanvas($("#mjC")); ctx.clearRect(0, 0, w, h);
+  const sc = Math.min(w / 6.4, h / 3.1), X = x => w / 2 + x * sc, Y = z => h * .62 - (z - 1) * sc;
+  ctx.strokeStyle = "rgba(255,255,255,.05)"; for (let i = -3; i <= 3; i++) { ctx.beginPath(); ctx.moveTo(X(i), 30); ctx.lineTo(X(i), h - 10); ctx.stroke(); }
+  ctx.strokeStyle = "rgba(255,255,255,.3)"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(X(-2.6), Y(1)); ctx.lineTo(X(2.6), Y(1)); ctx.stroke();
+  ctx.fillStyle = "rgba(255,92,154,.6)"; [-2.6, 2.6].forEach(x => ctx.fillRect(X(x) - 2, Y(1) - 10, 4, 20));
+  if (!MJS.d) { ctx.fillStyle = "#8d93ab"; ctx.font = "13px JetBrains Mono, monospace"; ctx.textAlign = "center"; ctx.fillText(MJS.loading ? "loading MuJoCo…" : "press any button to load MuJoCo", w / 2, h / 2 - 40); ctx.textAlign = "left"; return; }
+  const tip = (x, th) => [X(x + Math.sin(th)), Y(1 + Math.cos(th))];
+  // imagined futures: pole-tip paths
+  if (MJS.mode === "control" && MJS.plans.length) {
+    MJS.plans.forEach(([tr, wt], i) => { ctx.strokeStyle = `rgba(155,123,255,${.12 + Math.min(.5, wt * 3)})`; ctx.lineWidth = 1; ctx.beginPath(); tr.forEach(([x, th], j) => { const [px, py] = tip(x, th); j ? ctx.lineTo(px, py) : ctx.moveTo(px, py); }); ctx.stroke(); });
+    if (MJS.best) MJS.best.forEach(([x, th], j) => { if (j % 5) return; const a = .5 - j / MH * .4; ctx.strokeStyle = `rgba(94,242,255,${a})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(x), Y(1)); ctx.lineTo(...tip(x, th)); ctx.stroke(); });
+  }
+  // reality from MuJoCo state
+  const x = MJS.d.qpos[0], th = MJS.d.qpos[1];
+  ctx.fillStyle = "#e8eaf2"; ctx.fillRect(X(x) - .2 * sc, Y(1) - .1 * sc, .4 * sc, .2 * sc);
+  ctx.strokeStyle = "#ffb547"; ctx.lineWidth = Math.max(4, .09 * sc); ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(X(x), Y(1)); ctx.lineTo(...tip(x, th)); ctx.stroke(); ctx.lineCap = "butt";
+  ctx.fillStyle = "#2b3036"; ctx.beginPath(); ctx.arc(X(x), Y(1), 5, 0, 7); ctx.fill();
+  // force arrow
+  const u = MJS.d.ctrl[0]; ctx.strokeStyle = "#52f2a1"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(x), Y(1) + .22 * sc); ctx.lineTo(X(x) + u * .5 * sc, Y(1) + .22 * sc); ctx.stroke();
+  ctx.fillStyle = "#eef0f8"; ctx.font = "12px JetBrains Mono, monospace";
+  ctx.fillText({ idle: "idle", explore: `exploring · episode ${MJS.ep + 1}/12`, control: WM.fitted ? "control · planning in the learned world model" : "control · no model yet (random)" }[MJS.mode], 14, h - 14);
+  ctx.fillStyle = "#5b6178"; ctx.fillText(`t = ${MJS.d.time.toFixed(2)} s (MuJoCo)`, w - 170, h - 14);
+  // chart
+  const cc = fitCanvas($("#mjChart")), c2 = cc.ctx; c2.clearRect(0, 0, cc.w, cc.h);
+  c2.strokeStyle = "rgba(255,255,255,.08)"; c2.beginPath(); c2.moveTo(0, cc.h / 2); c2.lineTo(cc.w, cc.h / 2); c2.stroke();
+  const Xc = i => i / 250 * cc.w, Yc = v => cc.h / 2 - v * (cc.h / 2 - 4);
+  c2.strokeStyle = "#ffb547"; c2.lineWidth = 1.5; c2.beginPath(); MJS.hist.forEach((v, i) => i ? c2.lineTo(Xc(i), Yc(v)) : c2.moveTo(Xc(i), Yc(v))); c2.stroke();
+  // prediction made 25 steps (1 s) earlier, aligned to the time it was about
+  c2.fillStyle = "#9b7bff"; const off = 25 + MJS.hist.length - MJS.predQ.length;
+  MJS.predQ.forEach((v, i) => { const t = i + off; if (v === null || i % 2 || t < 0 || t >= MJS.hist.length) return; c2.fillRect(Xc(t) - 1, Yc(v) - 1, 2.5, 2.5); });
+}
+const mjIO = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { mjLoad(); mjIO.disconnect(); } }), { threshold: .2 });
+mjIO.observe($("#mujoco"));
+
 /* ============ MAIN LOOP for scene canvases ============ */
 function loop(t) {
   const id = scenes[curScene].id;
   if (id === "sandbox") drawBall();
   if (id === "schools") drawAp(t);
   if (id === "ridgew") drawRW(t);
+  if (id === "mujoco") drawMJ();
   if (id === "challenges") drawDrift(t);
   requestAnimationFrame(loop);
 }
 // draw once so canvases aren't blank before first visit
-requestAnimationFrame(t => { drawBall(); drawAp(t); drawRW(t); drawDrift(t); requestAnimationFrame(loop); });
+requestAnimationFrame(t => { drawBall(); drawAp(t); drawRW(t); drawMJ(); drawDrift(t); requestAnimationFrame(loop); });
 addEventListener("resize", () => { const t = performance.now(); drawBall(); drawAp(t); drawRW(t); drawDrift(t); });
 })();
 </script>
