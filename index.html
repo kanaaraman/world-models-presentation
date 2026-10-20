@@ -1,0 +1,1426 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>World Models, Explored</title>
+<meta name="description" content="An interactive journey through AI world models: what they are, why we need them, the state of the art in 2026, use cases, software and open-source tools.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05060b; --bg2:#0b0d16; --panel:rgba(16,19,32,.72); --panel-solid:#10131f;
+  --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.18);
+  --ink:#eef0f8; --muted:#8d93ab; --dim:#5b6178;
+  --cyan:#5ef2ff; --violet:#9b7bff; --amber:#ffb547; --pink:#ff5c9a; --green:#52f2a1;
+  --display:"Space Grotesk",system-ui,sans-serif; --serif:"Instrument Serif",Georgia,serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-snap-type:y proximity;background:var(--bg)}
+body{background:var(--bg);color:var(--ink);font-family:var(--display);line-height:1.5;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:var(--cyan);text-decoration:none}
+a:hover{text-decoration:underline}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
+::selection{background:var(--violet);color:#fff}
+
+/* background field */
+#field{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none;transition:opacity 1.2s}
+.grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.05;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,.75) 100%)}
+
+/* chrome */
+#progress{position:fixed;top:0;left:0;height:2px;z-index:50;background:linear-gradient(90deg,var(--cyan),var(--violet),var(--pink));width:0;transition:width .3s}
+#dots{position:fixed;right:22px;top:50%;transform:translateY(-50%);z-index:40;display:flex;flex-direction:column;gap:12px}
+#dots button{width:10px;height:10px;border-radius:50%;border:1px solid var(--line2);position:relative;transition:.3s}
+#dots button.on{background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 12px var(--cyan)}
+#dots button span{position:absolute;right:20px;top:50%;transform:translateY(-50%);white-space:nowrap;font-size:12px;color:var(--muted);opacity:0;pointer-events:none;transition:.2s;font-family:var(--mono)}
+#dots button:hover span{opacity:1}
+#dots button.on span{color:var(--ink)}
+#counter{position:fixed;left:24px;bottom:20px;z-index:40;font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.08em}
+#counter b{color:var(--ink);font-weight:600}
+#hint{position:fixed;right:24px;bottom:20px;z-index:40;font-family:var(--mono);font-size:11px;color:var(--dim)}
+kbd{border:1px solid var(--line2);border-radius:4px;padding:1px 5px;font-family:var(--mono);font-size:10px;color:var(--muted)}
+
+/* scenes */
+main{position:relative;z-index:2}
+.scene{min-height:100vh;scroll-snap-align:start;padding:96px 7vw 80px;display:flex;flex-direction:column;justify-content:center;position:relative}
+.wrap{max-width:1240px;width:100%;margin:0 auto}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--cyan);display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.eyebrow::before{content:"";width:28px;height:1px;background:currentColor}
+h1,h2{font-weight:500;letter-spacing:-.03em;line-height:1.02}
+h2{font-size:clamp(34px,5.2vw,72px);margin-bottom:22px}
+h2 em,h1 em{font-family:var(--serif);font-style:italic;font-weight:400;letter-spacing:-.01em;color:var(--cyan)}
+.lede{font-size:clamp(16px,1.5vw,20px);color:var(--muted);max-width:720px;font-weight:300}
+.lede b{color:var(--ink);font-weight:500}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:999px;border:1px solid var(--line2);color:var(--muted);transition:.2s;white-space:nowrap}
+.chip.on,.chip:hover{border-color:var(--cyan);color:var(--ink);background:rgba(94,242,255,.08)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;border:1px solid var(--line2);font-size:14px;transition:.2s;background:rgba(255,255,255,.03)}
+.btn:hover{border-color:var(--cyan);background:rgba(94,242,255,.08)}
+.btn.primary{background:var(--cyan);color:#041014;border-color:var(--cyan);font-weight:600}
+.btn.primary:hover{background:#9af7ff}
+
+/* reveal */
+.rv{opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1);transition-delay:calc(var(--d,0)*90ms)}
+.scene.in .rv{opacity:1;transform:none}
+
+/* HERO */
+#hero{align-items:flex-start}
+#hero h1{font-size:clamp(56px,11vw,168px);margin:10px 0 24px}
+#hero h1 .line{display:block;overflow:hidden}
+#hero h1 .line span{display:inline-block;transform:translateY(110%);transition:transform 1.2s cubic-bezier(.2,.8,.2,1)}
+#hero.in h1 .line span{transform:none}
+#hero.in h1 .line:nth-child(2) span{transition-delay:.15s}
+.hero-meta{display:flex;gap:28px;flex-wrap:wrap;margin-top:38px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.hero-meta div b{display:block;color:var(--ink);font-size:13px;margin-bottom:2px}
+.typed{font-family:var(--mono);color:var(--amber);font-size:clamp(13px,1.2vw,16px);min-height:1.6em;margin-top:8px}
+.typed::after{content:"▌";animation:blink 1s steps(1) infinite;margin-left:2px}
+@keyframes blink{50%{opacity:0}}
+.scrollcue{position:absolute;bottom:34px;left:50%;transform:translateX(-50%);width:22px;height:36px;border:1px solid var(--line2);border-radius:12px}
+.scrollcue::after{content:"";position:absolute;left:50%;top:8px;width:2px;height:7px;background:var(--cyan);transform:translateX(-50%);animation:cue 1.8s infinite}
+@keyframes cue{0%{opacity:0;transform:translate(-50%,0)}40%{opacity:1}100%{opacity:0;transform:translate(-50%,12px)}}
+
+/* DEFINITION */
+.def-grid{display:grid;grid-template-columns:1fr 1.15fr;gap:48px;align-items:center}
+.quote{font-family:var(--serif);font-style:italic;font-size:clamp(22px,2.3vw,32px);line-height:1.25;margin:28px 0;padding-left:20px;border-left:2px solid var(--violet)}
+.quote small{display:block;font-family:var(--mono);font-style:normal;font-size:11px;color:var(--muted);margin-top:10px;letter-spacing:.05em}
+.loop-box{padding:20px;position:relative}
+.loop-box svg{width:100%;height:auto;display:block}
+.loop-toggle{display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+.flow{stroke-dasharray:6 8;animation:flow 1.2s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-28}}
+.node-c{fill:rgba(16,19,32,.95);stroke-width:1.5}
+.lbl{font-family:var(--display);font-size:15px;fill:var(--ink);text-anchor:middle;font-weight:500}
+.sub{font-family:var(--mono);font-size:10px;fill:var(--muted);text-anchor:middle}
+#loopSvg .obs{transition:opacity .6s}
+#loopSvg.dream .obs{opacity:.12}
+#loopSvg .dreamArc{opacity:0;transition:opacity .6s}
+#loopSvg.dream .dreamArc{opacity:1}
+.loop-caption{font-size:14px;color:var(--muted);text-align:center;min-height:44px;margin-top:8px}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:26px}
+.three div{padding:14px;border-radius:12px;border:1px solid var(--line);font-size:13px;color:var(--muted)}
+.three b{display:block;color:var(--ink);font-size:15px;margin-bottom:4px;font-weight:500}
+.three .k{font-family:var(--mono);font-size:11px;color:var(--cyan)}
+
+/* SANDBOX */
+.sand{display:grid;grid-template-columns:1fr 300px;gap:18px;margin-top:26px}
+.sand-canvas{position:relative;overflow:hidden;min-height:420px}
+#ball{width:100%;height:100%;display:block;position:absolute;inset:0}
+.sand-ctrl{padding:22px;display:flex;flex-direction:column;gap:16px}
+.ctl label{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:6px}
+.ctl label b{font-family:var(--mono);color:var(--ink);font-weight:400}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:4px;background:var(--line2);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--cyan);box-shadow:0 0 0 4px rgba(94,242,255,.18);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--cyan);border:0;cursor:pointer}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{padding:10px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid var(--line)}
+.stat small{display:block;font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.stat b{font-family:var(--mono);font-size:16px;font-weight:600}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);position:absolute;left:16px;top:14px;z-index:2}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.log{font-family:var(--mono);font-size:11px;color:var(--muted);min-height:36px;line-height:1.5}
+
+/* WHY */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:30px 0 26px;overflow:hidden}
+.vs > div{padding:22px 24px}
+.vs > div + div{border-left:1px solid var(--line)}
+.vs h3{font-size:13px;font-family:var(--mono);letter-spacing:.14em;text-transform:uppercase;margin-bottom:12px;font-weight:400}
+.vs ul{list-style:none;display:grid;gap:9px;font-size:14px;color:var(--muted)}
+.vs li b{color:var(--ink);font-weight:500}
+.why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.why{padding:22px;position:relative;overflow:hidden;transition:transform .35s,border-color .35s;cursor:default;min-height:190px}
+.why:hover{transform:translateY(-4px);border-color:var(--line2)}
+.why .num{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.why h4{font-size:19px;font-weight:500;margin:10px 0 8px;letter-spacing:-.01em}
+.why p{font-size:13.5px;color:var(--muted)}
+.why .big{font-family:var(--mono);font-size:12px;color:var(--amber);margin-top:12px}
+.why::after{content:"";position:absolute;width:180px;height:180px;border-radius:50%;right:-70px;top:-70px;background:radial-gradient(circle,var(--glow,rgba(94,242,255,.2)),transparent 70%);opacity:.5;transition:.4s}
+.why:hover::after{opacity:1;transform:scale(1.3)}
+
+/* APPROACHES */
+.ap-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:26px 0 18px}
+.ap-tabs button{padding:10px 16px;border-radius:12px;border:1px solid var(--line);font-size:14px;text-align:left;transition:.25s;color:var(--muted)}
+.ap-tabs button small{display:block;font-family:var(--mono);font-size:10px;color:var(--dim)}
+.ap-tabs button.on{border-color:var(--c,var(--cyan));color:var(--ink);background:rgba(255,255,255,.04);box-shadow:inset 0 -2px 0 var(--c,var(--cyan))}
+.ap-body{display:grid;grid-template-columns:1.1fr 1fr;gap:0;overflow:hidden;min-height:420px}
+.ap-vis{position:relative;border-right:1px solid var(--line);min-height:360px}
+#apCanvas{position:absolute;inset:0;width:100%;height:100%}
+.ap-text{padding:28px}
+.ap-text h3{font-size:28px;font-weight:500;letter-spacing:-.02em;margin-bottom:6px}
+.ap-text .how{font-family:var(--mono);font-size:12px;color:var(--c,var(--cyan));margin-bottom:14px}
+.ap-text p{color:var(--muted);font-size:14.5px;margin-bottom:16px}
+.pc{display:grid;grid-template-columns:1fr 1fr;gap:14px;font-size:13px;margin-bottom:16px}
+.pc h5{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:6px;font-weight:400}
+.pc ul{list-style:none;color:var(--muted);display:grid;gap:4px}
+.pc li::before{content:"+ ";color:var(--green)}
+.pc .con li::before{content:"− ";color:var(--pink)}
+.ex{display:flex;gap:6px;flex-wrap:wrap}
+
+/* TIMELINE */
+.tl-ctrl{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0 8px;align-items:center}
+.tl-ctrl .sp{flex:1}
+.tl-outer{position:relative;margin:0 -7vw;padding:0 7vw}
+.tl{overflow-x:auto;overflow-y:hidden;cursor:grab;padding:30px 0 30px;scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+.tl:active{cursor:grabbing}
+.tl-track{display:flex;gap:0;position:relative;width:max-content;padding:0 4vw}
+.tl-track::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:linear-gradient(90deg,transparent,var(--line2) 4%,var(--line2) 96%,transparent)}
+.ev{width:230px;flex:none;position:relative;height:430px;transition:opacity .4s,filter .4s}
+.ev.off{opacity:.12;filter:grayscale(1)}
+.ev .dot{position:absolute;left:20px;top:50%;width:11px;height:11px;border-radius:50%;transform:translateY(-50%);background:var(--bg);border:2px solid var(--c);box-shadow:0 0 14px var(--c);z-index:2}
+.ev .stem{position:absolute;left:25px;width:1px;background:linear-gradient(var(--c),transparent)}
+.ev:nth-child(odd) .stem{bottom:50%;height:46px;background:linear-gradient(0deg,var(--c),transparent)}
+.ev:nth-child(even) .stem{top:50%;height:46px}
+.ev .card{position:absolute;left:8px;width:208px;padding:14px;border-radius:14px;transition:transform .3s,border-color .3s}
+.ev:nth-child(odd) .card{bottom:calc(50% + 46px)}
+.ev:nth-child(even) .card{top:calc(50% + 46px)}
+.ev .card:hover{transform:translateY(-3px);border-color:var(--c)}
+.ev .yr{font-family:var(--mono);font-size:12px;color:var(--c)}
+.ev h4{font-size:16px;font-weight:500;margin:4px 0 4px;line-height:1.2}
+.ev .org{font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:6px}
+.ev p{font-size:12.5px;color:var(--muted);line-height:1.45}
+.tl-fade{position:absolute;top:0;bottom:0;width:7vw;pointer-events:none;z-index:3}
+.tl-fade.l{left:0;background:linear-gradient(90deg,var(--bg),transparent)}
+.tl-fade.r{right:0;background:linear-gradient(-90deg,var(--bg),transparent)}
+
+/* STATE */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:30px 0 18px}
+.kpi{padding:20px}
+.kpi b{font-size:clamp(30px,3.4vw,46px);font-weight:500;letter-spacing:-.03em;display:block;line-height:1}
+.kpi b i{font-style:normal;font-size:.5em;color:var(--muted);margin-left:2px}
+.kpi span{font-size:13px;color:var(--muted);display:block;margin-top:8px}
+.kpi small{font-family:var(--mono);font-size:10px;color:var(--dim)}
+.state-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:14px}
+.mature{padding:24px}
+.mature h3,.ww h3{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:400;margin-bottom:16px}
+.bar{display:grid;grid-template-columns:150px 1fr 90px;gap:12px;align-items:center;margin-bottom:12px;font-size:13.5px}
+.bar .tr{height:8px;border-radius:8px;background:rgba(255,255,255,.05);overflow:hidden;position:relative}
+.bar .tr i{position:absolute;inset:0;width:0;border-radius:8px;background:linear-gradient(90deg,var(--violet),var(--cyan));transition:width 1.6s cubic-bezier(.2,.8,.2,1)}
+.bar em{font-style:normal;font-family:var(--mono);font-size:10.5px;color:var(--muted);text-align:right}
+.scale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--dim);margin:4px 102px 0 162px}
+.ww{padding:24px;display:grid;gap:16px}
+.ww ul{list-style:none;display:grid;gap:7px;font-size:13.5px;color:var(--muted)}
+.ww .ok li::before{content:"●  ";color:var(--green);font-size:9px}
+.ww .no li::before{content:"●  ";color:var(--pink);font-size:9px}
+
+/* USE CASES */
+.uc{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:center;margin-top:20px}
+.orbit{position:relative;aspect-ratio:1;max-width:560px;width:100%;margin:0 auto}
+.orbit svg{position:absolute;inset:0;width:100%;height:100%}
+.orbit .core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:28%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;text-align:center;font-size:14px;font-weight:500;background:radial-gradient(circle,rgba(155,123,255,.35),rgba(94,242,255,.08) 60%,transparent 72%);border:1px solid var(--line2)}
+.orbit .core small{display:block;font-family:var(--mono);font-size:10px;color:var(--muted);font-weight:400}
+.onode{position:absolute;transform:translate(-50%,-50%);width:86px;text-align:center;font-size:11.5px;color:var(--muted);transition:color .25s}
+.onode .ic{width:52px;height:52px;margin:0 auto 6px;border-radius:50%;display:grid;place-items:center;font-size:22px;background:var(--panel-solid);border:1px solid var(--line2);transition:.3s}
+.onode:hover .ic,.onode.on .ic{border-color:var(--cyan);box-shadow:0 0 22px rgba(94,242,255,.35);transform:scale(1.1)}
+.onode.on{color:var(--ink)}
+.uc-panel{padding:28px;min-height:420px}
+.uc-panel .tag{font-family:var(--mono);font-size:11px;color:var(--amber)}
+.uc-panel h3{font-size:30px;font-weight:500;letter-spacing:-.02em;margin:6px 0 10px}
+.uc-panel p{color:var(--muted);font-size:14.5px;margin-bottom:16px}
+.uc-panel ul{list-style:none;display:grid;gap:10px}
+.uc-panel li{padding:12px 14px;border-radius:12px;border:1px solid var(--line);font-size:13.5px;color:var(--muted);animation:pop .5s both}
+.uc-panel li b{color:var(--ink);font-weight:500}
+@keyframes pop{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+
+/* LANDSCAPE */
+.ls-ctrl{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:24px 0 16px}
+.search{flex:1;min-width:200px;max-width:320px;padding:10px 16px;border-radius:999px;border:1px solid var(--line2);background:rgba(255,255,255,.03);color:var(--ink);font:inherit;font-size:14px;outline:none}
+.search:focus{border-color:var(--cyan)}
+.ls-count{font-family:var(--mono);font-size:11px;color:var(--muted);margin-left:auto}
+.ls-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;max-height:62vh;overflow-y:auto;padding-right:4px;scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+.tool{padding:16px;border-radius:14px;display:flex;flex-direction:column;gap:6px;animation:pop .4s both;transition:border-color .2s,transform .2s}
+.tool:hover{border-color:var(--line2);transform:translateY(-2px)}
+.tool .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.tool h4{font-size:16px;font-weight:500;line-height:1.2}
+.tool .org{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+.tool p{font-size:12.8px;color:var(--muted);flex:1}
+.tool .ft{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+.badge{font-family:var(--mono);font-size:9.5px;padding:3px 8px;border-radius:999px;white-space:nowrap;border:1px solid}
+.b-open{color:var(--green);border-color:rgba(82,242,161,.4);background:rgba(82,242,161,.07)}
+.b-weights{color:var(--cyan);border-color:rgba(94,242,255,.4);background:rgba(94,242,255,.07)}
+.b-closed{color:var(--pink);border-color:rgba(255,92,154,.4);background:rgba(255,92,154,.07)}
+.b-sim{color:var(--amber);border-color:rgba(255,181,71,.4);background:rgba(255,181,71,.07)}
+
+/* GET STARTED */
+.gs{display:grid;grid-template-columns:320px 1fr;gap:18px;margin-top:26px}
+.paths{padding:20px;display:flex;flex-direction:column;gap:8px}
+.paths h3{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:400;margin-bottom:6px}
+.paths button{text-align:left;padding:12px 14px;border-radius:12px;border:1px solid var(--line);font-size:14px;transition:.2s;color:var(--muted)}
+.paths button.on{border-color:var(--cyan);color:var(--ink);background:rgba(94,242,255,.06)}
+.paths button small{display:block;font-family:var(--mono);font-size:10px;color:var(--dim)}
+.code{overflow:hidden;display:flex;flex-direction:column}
+.code-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--muted)}
+.code-head .dots3{display:flex;gap:6px}
+.code-head .dots3 i{width:10px;height:10px;border-radius:50%;background:var(--line2)}
+.code-head .sp{flex:1}
+.code pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.7;overflow-x:auto;color:#cfd3e6;flex:1;min-height:260px}
+.code pre .c{color:var(--dim)}
+.code pre .k{color:var(--violet)}
+.code pre .s{color:var(--green)}
+.code .why-pick{padding:14px 20px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+.code .why-pick b{color:var(--ink);font-weight:500}
+
+/* CHALLENGES */
+.ch{display:grid;grid-template-columns:1.2fr 1fr;gap:18px;margin-top:26px}
+.drift{padding:20px;display:flex;flex-direction:column}
+.drift-c{position:relative;flex:1;min-height:300px}
+#drift{position:absolute;inset:0;width:100%;height:100%}
+.drift .row{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.drift .row .ctl{flex:1;min-width:180px}
+.toggle{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer;user-select:none}
+.toggle input{accent-color:var(--cyan);width:16px;height:16px}
+.ch-list{display:grid;gap:10px}
+.chl{padding:14px 16px;border-radius:14px;cursor:pointer;transition:.25s}
+.chl .h{display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:500}
+.chl .h span{font-family:var(--mono);font-size:10px;color:var(--pink)}
+.chl p{font-size:13px;color:var(--muted);max-height:0;overflow:hidden;transition:max-height .45s,margin .45s}
+.chl.open{border-color:var(--line2)}
+.chl.open p{max-height:140px;margin-top:8px}
+
+/* FUTURE */
+.fut{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:30px;counter-reset:f}
+.fu{padding:20px;position:relative;min-height:220px}
+.fu::before{counter-increment:f;content:"0" counter(f);font-family:var(--mono);font-size:11px;color:var(--cyan)}
+.fu h4{font-size:17px;font-weight:500;margin:12px 0 8px;line-height:1.2}
+.fu p{font-size:13px;color:var(--muted)}
+.closing{text-align:center;align-items:center}
+.closing h2{font-size:clamp(44px,8vw,120px)}
+.refs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 24px;margin-top:40px;text-align:left;font-size:12.5px;max-width:1100px}
+.refs a{color:var(--muted);display:block;padding:4px 0;border-bottom:1px solid var(--line)}
+.refs a:hover{color:var(--cyan);text-decoration:none}
+.foot{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:30px}
+
+/* responsive */
+@media (max-width:1000px){
+  .def-grid,.sand,.ap-body,.state-grid,.uc,.gs,.ch{grid-template-columns:1fr}
+  .why-grid{grid-template-columns:1fr 1fr}
+  .kpis{grid-template-columns:1fr 1fr}
+  .fut{grid-template-columns:1fr 1fr}
+  .refs{grid-template-columns:1fr 1fr}
+  .ap-vis{border-right:0;border-bottom:1px solid var(--line)}
+  #dots{display:none}
+}
+@media (max-width:640px){
+  .scene{padding:80px 16px 64px}
+  .tl-outer{margin:0 -16px;padding:0 16px}
+  .why-grid,.three,.fut,.refs,.vs,.pc{grid-template-columns:1fr}
+  .vs > div + div{border-left:0;border-top:1px solid var(--line)}
+  .bar{grid-template-columns:100px 1fr}
+  .bar em{display:none}
+  .scale{margin:4px 0 0 112px}
+  .sand-canvas{min-height:320px}
+  .orbit{max-width:360px}
+  .onode{width:64px;font-size:10px}
+  .onode .ic{width:40px;height:40px;font-size:17px}
+  #hint{display:none}
+  .ls-grid{max-height:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  .rv{opacity:1;transform:none}
+  #hero h1 .line span{transform:none}
+}
+</style>
+</head>
+<body>
+<canvas id="field"></canvas>
+<div class="vignette"></div>
+<div class="grain"></div>
+<div id="progress"></div>
+<nav id="dots" aria-label="Scenes"></nav>
+<div id="counter"><b>01</b> / 13</div>
+<div id="hint"><kbd>↑</kbd> <kbd>↓</kbd> or scroll · <kbd>D</kbd> dream mode</div>
+
+<main>
+
+<!-- 1 HERO -->
+<section class="scene" id="hero" data-title="Intro" data-shape="0">
+  <div class="wrap">
+    <div class="eyebrow rv">An interactive briefing · 2026 edition</div>
+    <h1><span class="line"><span>World</span></span><span class="line"><span><em>Models</em></span></span></h1>
+    <p class="lede rv" style="--d:3">AI that doesn't just <b>describe</b> the world, it <b>simulates</b> it. It can predict what happens next, imagine "what if", and plan before it acts.</p>
+    <div class="typed rv" style="--d:4" id="typed"></div>
+    <div class="hero-meta rv" style="--d:5">
+      <div><b>13 scenes</b>Scroll or use arrow keys</div>
+      <div><b>5 live demos</b>Drag, click, break things</div>
+      <div><b>40+ systems</b>Open and closed, all mapped</div>
+    </div>
+  </div>
+  <div class="scrollcue"></div>
+</section>
+
+<!-- 2 DEFINITION -->
+<section class="scene" id="what" data-title="What is it" data-shape="1">
+  <div class="wrap def-grid">
+    <div>
+      <div class="eyebrow rv">01 — Definition</div>
+      <h2 class="rv" style="--d:1">A simulator that lives <em>inside</em> the mind</h2>
+      <p class="lede rv" style="--d:2">A world model is a learned model of how an environment works. Given the <b>current state</b> and an <b>action</b>, it predicts the <b>next state</b>. Because it can roll that prediction forward many steps, an agent can try things out in imagination before it does them for real.</p>
+      <div class="quote rv" style="--d:3">If an organism carries a small-scale model of reality in its head, it can try out alternatives before acting.<small>Paraphrasing Kenneth Craik, <i>The Nature of Explanation</i>, 1943</small></div>
+      <div class="three rv" style="--d:4">
+        <div><span class="k">perceive</span><b>Encode</b>Compress pixels and sensors into a compact state z</div>
+        <div><span class="k">predict</span><b>Dynamics</b>Learn p(z<sub>t+1</sub> | z<sub>t</sub>, a<sub>t</sub>), the "physics"</div>
+        <div><span class="k">plan</span><b>Imagine</b>Roll out futures, score them, pick the best action</div>
+      </div>
+    </div>
+    <div class="panel loop-box rv" style="--d:2">
+      <svg id="loopSvg" viewBox="0 0 520 440" aria-label="World model loop diagram">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5ef2ff"/></marker>
+          <marker id="ahv" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#ff5c9a"/></marker>
+          <radialGradient id="gl"><stop offset="0" stop-color="#9b7bff" stop-opacity=".5"/><stop offset="1" stop-color="#9b7bff" stop-opacity="0"/></radialGradient>
+        </defs>
+        <!-- world -->
+        <g class="obs">
+          <rect x="190" y="14" width="140" height="64" rx="14" class="node-c" stroke="#ffb547"/>
+          <text x="260" y="44" class="lbl">Real world</text>
+          <text x="260" y="62" class="sub">pixels · lidar · touch</text>
+          <path d="M330 60 Q 430 90 440 160" fill="none" stroke="#5ef2ff" stroke-width="1.6" class="flow" marker-end="url(#ah)"/>
+          <text x="440" y="96" class="sub" style="text-anchor:start">observe o<tspan font-size="8" dy="3">t</tspan></text>
+        </g>
+        <!-- encoder -->
+        <circle cx="430" cy="210" r="46" class="node-c" stroke="#5ef2ff"/>
+        <text x="430" y="208" class="lbl">Encoder</text>
+        <text x="430" y="226" class="sub">o → z</text>
+        <!-- latent -->
+        <circle cx="260" cy="250" r="74" fill="url(#gl)"/>
+        <circle cx="260" cy="250" r="54" class="node-c" stroke="#9b7bff"/>
+        <g id="zbars"></g>
+        <text x="260" y="292" class="sub">latent state z</text>
+        <path d="M386 222 Q 340 236 318 244" fill="none" stroke="#5ef2ff" stroke-width="1.6" class="flow" marker-end="url(#ah)"/>
+        <!-- dynamics -->
+        <circle cx="120" cy="330" r="50" class="node-c" stroke="#52f2a1"/>
+        <text x="120" y="326" class="lbl">Dynamics</text>
+        <text x="120" y="344" class="sub">ẑ(t+1) = f(z, a)</text>
+        <path d="M208 274 Q 180 300 172 312" fill="none" stroke="#5ef2ff" stroke-width="1.6" class="flow" marker-end="url(#ah)"/>
+        <!-- planner -->
+        <circle cx="90" cy="150" r="46" class="node-c" stroke="#ff5c9a"/>
+        <text x="90" y="148" class="lbl">Planner</text>
+        <text x="90" y="166" class="sub">score futures</text>
+        <path d="M108 280 Q 96 240 94 200" fill="none" stroke="#5ef2ff" stroke-width="1.6" class="flow" marker-end="url(#ah)"/>
+        <g class="obs">
+          <path d="M120 106 Q 140 50 186 46" fill="none" stroke="#5ef2ff" stroke-width="1.6" class="flow" marker-end="url(#ah)"/>
+          <text x="104" y="70" class="sub" style="text-anchor:end">act a<tspan font-size="8" dy="3">t</tspan></text>
+        </g>
+        <!-- dream arc -->
+        <g class="dreamArc">
+          <path d="M170 336 Q 260 420 312 290" fill="none" stroke="#ff5c9a" stroke-width="2" class="flow" marker-end="url(#ahv)"/>
+          <text x="262" y="414" class="sub" style="fill:#ff5c9a">imagined rollout: z → ẑ → ẑ → …</text>
+        </g>
+      </svg>
+      <div class="loop-caption" id="loopCap">Awake: the model watches the world, compresses it, predicts the next state and acts.</div>
+      <div class="loop-toggle">
+        <button class="chip on" data-mode="awake">Awake (closed loop)</button>
+        <button class="chip" data-mode="dream">Dream (imagination)</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 SANDBOX -->
+<section class="scene" id="sandbox" data-title="Live demo" data-shape="2">
+  <div class="wrap">
+    <div class="eyebrow rv">02 — Feel it</div>
+    <h2 class="rv" style="--d:1">Imagine first, <em>then</em> throw</h2>
+    <p class="lede rv" style="--d:2">This little agent has a world model of ballistics, but it doesn't know about the <b>hidden wind</b>. The cyan fan is what it imagines and the amber ball is what really happens. Each real throw is new experience, so the model learns and its uncertainty shrinks. Press <b>Plan</b> and it searches its imagination for the best shot.</p>
+    <div class="sand rv" style="--d:3">
+      <div class="panel sand-canvas">
+        <div class="legend"><span><i style="background:#5ef2ff"></i>imagined futures</span><span><i style="background:#ffb547"></i>reality</span><span><i style="background:#ff5c9a"></i>target</span></div>
+        <canvas id="ball"></canvas>
+      </div>
+      <div class="panel sand-ctrl">
+        <div class="ctl"><label>Angle <b id="angV">45°</b></label><input type="range" id="ang" min="10" max="80" value="45"></div>
+        <div class="ctl"><label>Power <b id="powV">14.0</b></label><input type="range" id="pow" min="6" max="20" step=".1" value="14"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn primary" id="throw">Throw ▸</button>
+          <button class="btn" id="plan">Plan ✦</button>
+          <button class="btn" id="newWorld">New world</button>
+        </div>
+        <div class="stats">
+          <div class="stat"><small>Experience</small><b id="sExp">0 throws</b></div>
+          <div class="stat"><small>Uncertainty</small><b id="sUnc">±2.00</b></div>
+          <div class="stat"><small>Belief: wind</small><b id="sWind">0.00</b></div>
+          <div class="stat"><small>Last miss</small><b id="sMiss">—</b></div>
+        </div>
+        <div class="log" id="ballLog">The model starts out naive and assumes there's no wind. Try a throw.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 WHY -->
+<section class="scene" id="why" data-title="Why we need them" data-shape="3">
+  <div class="wrap">
+    <div class="eyebrow rv">03 — Why now</div>
+    <h2 class="rv" style="--d:1">Language got us far. <em>Physics</em> is the next frontier.</h2>
+    <p class="lede rv" style="--d:2">Large language models learned the world through text. But robots, cars and agents have to act in the world, and text alone doesn't teach gravity, occlusion or what happens after you push something.</p>
+    <div class="panel vs rv" style="--d:3">
+      <div>
+        <h3 style="color:var(--violet)">LLM · models text</h3>
+        <ul>
+          <li><b>Predicts</b> the next token</li>
+          <li><b>Learns from</b> the internet's text (trillions of tokens)</li>
+          <li><b>Great at</b> reasoning in language, code, knowledge</li>
+          <li><b>Weak at</b> intuitive physics, 3D space, cause and effect over time</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="color:var(--cyan)">World model · models dynamics</h3>
+        <ul>
+          <li><b>Predicts</b> the next state of the world, given an action</li>
+          <li><b>Learns from</b> video, sensors, simulation and interaction</li>
+          <li><b>Great at</b> planning, counterfactuals, generating experience</li>
+          <li><b>Weak at</b> long horizons, exact physics, cost (for now)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="why-grid">
+      <div class="panel why rv" style="--d:4;--glow:rgba(94,242,255,.3)"><div class="num">01 / DATA</div><h4>Robots don't have an internet</h4><p>Real robot data is scarce, slow and expensive to collect. World models can generate synthetic experience from video, at a scale no physical fleet could match.</p><div class="big">Cosmos 1 was trained on ~20M hours of video</div></div>
+      <div class="panel why rv" style="--d:5;--glow:rgba(155,123,255,.3)"><div class="num">02 / EFFICIENCY</div><h4>Imagination is cheap</h4><p>Agents can learn inside their own "dreams" and need far fewer real trials. DreamerV3 collected diamonds in Minecraft from scratch with one set of hyperparameters.</p><div class="big">Dreamer 4 (2025) did it from offline video only</div></div>
+      <div class="panel why rv" style="--d:6;--glow:rgba(82,242,161,.3)"><div class="num">03 / PLANNING</div><h4>Think before you act</h4><p>With a model, an agent can search over futures. MuZero mastered Go, chess, shogi and Atari without ever being told the rules.</p><div class="big">Planning = search over imagined rollouts</div></div>
+      <div class="panel why rv" style="--d:7;--glow:rgba(255,92,154,.3)"><div class="num">04 / SAFETY</div><h4>Rehearse the rare and the dangerous</h4><p>A child running into the road or a tornado on the highway are hard to collect and impossible to stage. A world model can generate them on demand.</p><div class="big">Waymo World Model (2026), built on Genie 3</div></div>
+      <div class="panel why rv" style="--d:8;--glow:rgba(255,181,71,.3)"><div class="num">05 / CAUSALITY</div><h4>Counterfactuals: "what if?"</h4><p>Correlation in text isn't causation in the world. An action-conditioned model can answer "what would have happened if I'd turned left?"</p><div class="big">Key ingredient for scientific and causal AI</div></div>
+      <div class="panel why rv" style="--d:9;--glow:rgba(94,242,255,.3)"><div class="num">06 / AGI</div><h4>The missing piece of intelligence</h4><p>Animals plan with internal models. Many researchers, LeCun among them, argue that human-level AI needs predictive world models, not just bigger LLMs.</p><div class="big">AMI Labs raised ~$1.03B for this bet (2026)</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 APPROACHES -->
+<section class="scene" id="schools" data-title="Approaches" data-shape="4">
+  <div class="wrap">
+    <div class="eyebrow rv">04 — Five schools of thought</div>
+    <h2 class="rv" style="--d:1">There's no single <em>recipe</em></h2>
+    <p class="lede rv" style="--d:2">"World model" covers a family of approaches. They differ in what they predict (pixels, latents, 3D geometry or rewards) and in what they're for.</p>
+    <div class="ap-tabs rv" style="--d:3" id="apTabs"></div>
+    <div class="panel ap-body rv" style="--d:4">
+      <div class="ap-vis"><canvas id="apCanvas"></canvas></div>
+      <div class="ap-text" id="apText"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 TIMELINE -->
+<section class="scene" id="timeline" data-title="History" data-shape="5">
+  <div class="wrap">
+    <div class="eyebrow rv">05 — 80 years in one drag</div>
+    <h2 class="rv" style="--d:1">From a psychology book to <em>playable</em> worlds</h2>
+    <div class="tl-ctrl rv" style="--d:2" id="tlFilters">
+      <button class="chip on" data-f="all">All</button>
+      <button class="chip" data-f="theory">Theory</button>
+      <button class="chip" data-f="rl">Model-based RL</button>
+      <button class="chip" data-f="gen">Generative / video</button>
+      <button class="chip" data-f="jepa">Latent / JEPA</button>
+      <button class="chip" data-f="3d">3D / spatial</button>
+      <button class="chip" data-f="ind">Industry</button>
+      <span class="sp"></span>
+      <span class="chip" style="border-style:dashed">drag ⟷ or shift+scroll</span>
+    </div>
+  </div>
+  <div class="tl-outer rv" style="--d:3">
+    <div class="tl-fade l"></div><div class="tl-fade r"></div>
+    <div class="tl" id="tl"><div class="tl-track" id="tlTrack"></div></div>
+  </div>
+</section>
+
+<!-- 7 STATE -->
+<section class="scene" id="state" data-title="Current state" data-shape="0">
+  <div class="wrap">
+    <div class="eyebrow rv">06 — State of the art, late 2026</div>
+    <h2 class="rv" style="--d:1">From research demos to <em>infrastructure</em></h2>
+    <p class="lede rv" style="--d:2">In 2024 world models were mostly papers. By 2026 they're shipping as products, open-weight platforms and production simulators, and attracting serious funding.</p>
+    <div class="kpis">
+      <div class="panel kpi rv" style="--d:3"><b data-count="24" data-suf="fps">0</b><span>Real-time interactive worlds at 720p</span><small>Genie 3 · DeepMind</small></div>
+      <div class="panel kpi rv" style="--d:4"><b data-count="64" data-suf="B">0</b><span>Parameters in the largest open-weight physical-AI world model</span><small>Cosmos3-Super · NVIDIA</small></div>
+      <div class="panel kpi rv" style="--d:5"><b data-count="1.03" data-pre="$" data-suf="B" data-dec="2">0</b><span>Raised by a lab built purely around world models</span><small>AMI Labs · Yann LeCun</small></div>
+      <div class="panel kpi rv" style="--d:6"><b data-count="20" data-suf="M h">0</b><span>Hours of video behind the first Cosmos models</span><small>NVIDIA · 2025</small></div>
+    </div>
+    <div class="state-grid">
+      <div class="panel mature rv" style="--d:7">
+        <h3>Maturity by domain</h3>
+        <div id="bars"></div>
+        <div class="scale"><span>research</span><span>pilot</span><span>production</span></div>
+      </div>
+      <div class="panel ww rv" style="--d:8">
+        <div><h3>What works today</h3><ul class="ok">
+          <li>Real-time, explorable worlds from a text or image prompt</li>
+          <li>Synthetic driving and robot data for training and testing</li>
+          <li>Learned weather models that beat physics-based forecasts</li>
+          <li>Agents that learn skills inside learned simulators</li>
+          <li>Persistent, exportable 3D scenes (splats and meshes)</li>
+        </ul></div>
+        <div><h3>Not solved yet</h3><ul class="no">
+          <li>Consistency beyond minutes of interaction</li>
+          <li>Reliable, measurable physical accuracy</li>
+          <li>Cheap inference: real-time worlds still need large accelerators</li>
+          <li>Multi-agent, long-memory, editable worlds</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 USE CASES -->
+<section class="scene" id="uses" data-title="Use cases" data-shape="1">
+  <div class="wrap">
+    <div class="eyebrow rv">07 — What it's for</div>
+    <h2 class="rv" style="--d:1">One idea, <em>ten</em> industries</h2>
+    <div class="uc">
+      <div class="orbit rv" style="--d:2" id="orbit">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,.08)" stroke-width=".25"/>
+          <circle cx="50" cy="50" r="38" fill="none" stroke="#5ef2ff" stroke-width=".35" stroke-dasharray="1 3" class="flow" style="animation-duration:6s"/>
+          <circle cx="50" cy="50" r="24" fill="none" stroke="rgba(255,255,255,.05)" stroke-width=".25"/>
+          <g id="spokes"></g>
+        </svg>
+        <div class="core">World<br>model<small>shared engine</small></div>
+      </div>
+      <div class="panel uc-panel rv" style="--d:3" id="ucPanel"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 LANDSCAPE -->
+<section class="scene" id="software" data-title="Software map" data-shape="3">
+  <div class="wrap">
+    <div class="eyebrow rv">08 — The landscape</div>
+    <h2 class="rv" style="--d:1">Every tool you can <em>use</em> today</h2>
+    <p class="lede rv" style="--d:2">Filter by access level or category, or search. A green badge means fully open source, cyan means open weights, pink means closed or API-only, and amber marks simulators and engines.</p>
+    <div class="ls-ctrl rv" style="--d:3">
+      <input class="search" id="lsSearch" placeholder="Search: robotics, Minecraft, NVIDIA…" aria-label="Search tools">
+      <div id="lsAccess" style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="chip on" data-a="all">All</button>
+        <button class="chip" data-a="open">Open source</button>
+        <button class="chip" data-a="weights">Open weights</button>
+        <button class="chip" data-a="closed">Closed / API</button>
+        <button class="chip" data-a="sim">Simulators</button>
+      </div>
+      <span class="ls-count" id="lsCount"></span>
+    </div>
+    <div class="ls-grid rv" style="--d:4" id="lsGrid"></div>
+  </div>
+</section>
+
+<!-- 10 GET STARTED -->
+<section class="scene" id="start" data-title="Get started" data-shape="4">
+  <div class="wrap">
+    <div class="eyebrow rv">09 — Open source, hands-on</div>
+    <h2 class="rv" style="--d:1">Pick a path, <em>run</em> something tonight</h2>
+    <div class="gs">
+      <div class="panel paths rv" style="--d:2" id="paths"><h3>I want to…</h3></div>
+      <div class="panel code rv" style="--d:3">
+        <div class="code-head"><span class="dots3"><i></i><i></i><i></i></span><span id="codeTitle">terminal</span><span class="sp"></span><button class="chip" id="copy">copy</button></div>
+        <pre id="codeBody"></pre>
+        <div class="why-pick" id="codeWhy"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 CHALLENGES -->
+<section class="scene" id="challenges" data-title="Challenges" data-shape="2">
+  <div class="wrap">
+    <div class="eyebrow rv">10 — The hard parts</div>
+    <h2 class="rv" style="--d:1">Small errors, <em>compounded</em></h2>
+    <p class="lede rv" style="--d:2">A world model feeds its own predictions back in as input. A 1% error per step doesn't stay at 1%. Move the slider, then switch on observations to see why closed-loop grounding matters.</p>
+    <div class="ch">
+      <div class="panel drift rv" style="--d:3">
+        <div class="drift-c"><canvas id="drift"></canvas></div>
+        <div class="row">
+          <div class="ctl"><label>Error per step <b id="errV">1.0%</b></label><input type="range" id="err" min="0" max="5" step=".1" value="1"></div>
+          <label class="toggle"><input type="checkbox" id="ground"> Re-ground with observations every 40 steps</label>
+        </div>
+      </div>
+      <div class="ch-list rv" style="--d:4" id="chList"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 12 FUTURE / CLOSE -->
+<section class="scene" id="future" data-title="What's next" data-shape="5">
+  <div class="wrap">
+    <div class="eyebrow rv">11 — Looking ahead</div>
+    <h2 class="rv" style="--d:1">Where this is <em>heading</em></h2>
+    <div class="fut">
+      <div class="panel fu rv" style="--d:2"><h4>LLM + world model fusion</h4><p>Language for reasoning, a world model for physics. Vision-language-action models (Gemini Robotics, GR00T, π0) are the first step.</p></div>
+      <div class="panel fu rv" style="--d:3"><h4>Persistent, editable worlds</h4><p>Worlds that remember for hours, can be edited with prompts, and can be shared by many agents and people.</p></div>
+      <div class="panel fu rv" style="--d:4"><h4>Benchmarks for physics</h4><p>Agreed-upon tests of physical accuracy, so "looks right" becomes "measurably right".</p></div>
+      <div class="panel fu rv" style="--d:5"><h4>Edge and on-device</h4><p>Distilled models and splat renderers that run on phones, headsets and robots, not just in data centers.</p></div>
+      <div class="panel fu rv" style="--d:6"><h4>Science simulators</h4><p>Learned models of climate, materials, cells and cities that make "what-if" experiments cheap.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="scene closing" id="end" data-title="Thanks" data-shape="0">
+  <div class="wrap" style="display:flex;flex-direction:column;align-items:center">
+    <div class="eyebrow rv">End of simulation</div>
+    <h2 class="rv" style="--d:1">The future is <em>imagined</em><br>before it's built.</h2>
+    <p class="lede rv" style="--d:2;margin:0 auto">Press <kbd>D</kbd> anywhere to put the background into dream mode, or go back to the <a href="#sandbox">live demo</a>.</p>
+    <div class="refs rv" style="--d:3">
+      <a href="https://worldmodels.github.io/" target="_blank" rel="noopener">Ha &amp; Schmidhuber — World Models (2018) ↗</a>
+      <a href="https://arxiv.org/abs/2301.04104" target="_blank" rel="noopener">Hafner et al. — DreamerV3 ↗</a>
+      <a href="https://arxiv.org/abs/1911.08265" target="_blank" rel="noopener">Schrittwieser et al. — MuZero ↗</a>
+      <a href="https://openreview.net/pdf?id=BZ5a1r-kVsf" target="_blank" rel="noopener">LeCun — A Path Towards AMI (2022) ↗</a>
+      <a href="https://ai.meta.com/vjepa/" target="_blank" rel="noopener">Meta — V-JEPA 2 ↗</a>
+      <a href="https://deepmind.google/models/genie/" target="_blank" rel="noopener">Google DeepMind — Genie 3 ↗</a>
+      <a href="https://www.nvidia.com/en-us/ai/cosmos/" target="_blank" rel="noopener">NVIDIA — Cosmos ↗</a>
+      <a href="https://www.worldlabs.ai/" target="_blank" rel="noopener">World Labs — Marble ↗</a>
+      <a href="https://gamengen.github.io/" target="_blank" rel="noopener">Google — GameNGen (DOOM) ↗</a>
+      <a href="https://diamond-wm.github.io/" target="_blank" rel="noopener">DIAMOND — diffusion world model ↗</a>
+      <a href="https://wayve.ai/thinking/gaia-2/" target="_blank" rel="noopener">Wayve — GAIA-2 ↗</a>
+      <a href="https://en.wikipedia.org/wiki/World_model_(artificial_intelligence)" target="_blank" rel="noopener">Wikipedia — World model (AI) ↗</a>
+    </div>
+    <div class="foot">Built as a single HTML file · no frameworks · facts as of October 2026. Check the sources for the latest details.</div>
+  </div>
+</section>
+
+</main>
+
+<script>
+(() => {
+"use strict";
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const lerp = (a, b, t) => a + (b - a) * t;
+const randn = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+
+function fitCanvas(c) {
+  const r = c.getBoundingClientRect();
+  const w = Math.max(1, r.width), h = Math.max(1, r.height);
+  if (c.width !== Math.round(w * DPR) || c.height !== Math.round(h * DPR)) {
+    c.width = Math.round(w * DPR); c.height = Math.round(h * DPR);
+  }
+  const ctx = c.getContext("2d"); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  return { ctx, w, h };
+}
+
+/* ============ BACKGROUND FIELD ============ */
+const field = $("#field"), fctx = field.getContext("2d");
+const N = innerWidth < 700 ? 650 : 1300;
+const P = Array.from({ length: N }, () => ({ x: Math.random() * innerWidth, y: Math.random() * innerHeight, s: Math.random() }));
+let shape = 0, fieldAlpha = 1, dream = false, mouse = { x: -999, y: -999 };
+let FW = 0, FH = 0;
+function resizeField() { FW = innerWidth; FH = innerHeight; field.width = FW * DPR; field.height = FH * DPR; fctx.setTransform(DPR, 0, 0, DPR, 0, 0); }
+resizeField(); addEventListener("resize", resizeField);
+addEventListener("pointermove", e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+
+function target(i, t) {
+  const u = i / N, ga = 2.39996323;
+  let x, y, z;
+  switch (shape) {
+    case 0: { // sphere
+      y = 1 - 2 * u; const r = Math.sqrt(1 - y * y), p = i * ga;
+      const wob = dream ? 1 + .12 * Math.sin(p * 3 + t * 2) : 1;
+      x = Math.cos(p) * r * wob; z = Math.sin(p) * r * wob; y *= wob; break; }
+    case 1: { // torus
+      const a = u * Math.PI * 2 * 1, b = i * ga * 7;
+      const R = .85, r = .32 + (dream ? .08 * Math.sin(a * 6 + t * 2) : 0);
+      x = (R + r * Math.cos(b)) * Math.cos(a); z = (R + r * Math.cos(b)) * Math.sin(a); y = r * Math.sin(b); break; }
+    case 2: { // terrain
+      const cols = Math.round(Math.sqrt(N)), c = i % cols, rr = Math.floor(i / cols), rows = Math.ceil(N / cols);
+      x = (c / cols - .5) * 3; z = (rr / rows - .5) * 3;
+      y = .28 * Math.sin(2.4 * x + t * .9) * Math.cos(2.1 * z + t * .6) + (dream ? .15 * Math.sin(5 * x * z + t * 2) : 0) - .2; break; }
+    case 3: { // galaxy
+      const arm = i % 3, rad = Math.pow(u, .6) * 1.4, ang = rad * 4 + arm * 2.094 + t * .05;
+      const j = (Math.sin(i * 12.9898) * 43758.5453) % 1;
+      x = Math.cos(ang) * rad + j * .12; z = Math.sin(ang) * rad + ((i * 7.31) % 1) * .12; y = (j - .5) * .12; break; }
+    case 4: { // cube room
+      const f = i % 6, a = ((i * 0.618) % 1) * 2 - 1, b = ((i * 0.381966 * 7) % 1) * 2 - 1, s = .85;
+      const p = [[s, a * s, b * s], [-s, a * s, b * s], [a * s, s, b * s], [a * s, -s, b * s], [a * s, b * s, s], [a * s, b * s, -s]][f];
+      [x, y, z] = p; break; }
+    default: { // helix / DNA
+      const strand = i % 2, k = u * 26 + t * .5;
+      x = (u - .5) * 4.2; y = Math.cos(k + strand * Math.PI) * .42; z = Math.sin(k + strand * Math.PI) * .42;
+      if (i % 9 === 0) { const m = ((i * .37) % 1) * 2 - 1; y = Math.cos(k) * .42 * m; z = Math.sin(k) * .42 * m; } }
+  }
+  // rotate
+  const ry = t * (shape === 5 ? .05 : .16), rx = shape === 2 ? .55 : shape === 3 ? .9 : .32;
+  let X = x * Math.cos(ry) - z * Math.sin(ry), Z = x * Math.sin(ry) + z * Math.cos(ry);
+  let Y = y * Math.cos(rx) - Z * Math.sin(rx); Z = y * Math.sin(rx) + Z * Math.cos(rx);
+  const scale = Math.min(FW, FH) * (shape === 5 ? .3 : .36), persp = 2.6 / (2.6 + Z);
+  const cx = FW * (shape === 0 && curScene === 0 && FW > 900 ? .68 : .5);
+  return [cx + X * scale * persp, FH * .5 + Y * scale * persp, Z];
+}
+
+let tF = 0;
+function drawField() {
+  tF += reduced ? 0 : .016;
+  fctx.clearRect(0, 0, FW, FH);
+  const k = dream ? .03 : .055;
+  for (let i = 0; i < N; i++) {
+    const p = P[i], [tx, ty, tz] = target(i, tF);
+    p.x = lerp(p.x, tx, k); p.y = lerp(p.y, ty, k);
+    const dx = p.x - mouse.x, dy = p.y - mouse.y, d2 = dx * dx + dy * dy;
+    if (d2 < 12000) { const f = (12000 - d2) / 12000 * 14; const d = Math.sqrt(d2) || 1; p.x += dx / d * f; p.y += dy / d * f; }
+    const depth = (1 - tz) * .5; // 0..1
+    const a = (.25 + depth * .75) * fieldAlpha;
+    const hue = dream ? (300 + p.s * 80 + tF * 20) % 360 : 185 + p.s * 75 - depth * 20;
+    fctx.fillStyle = `hsla(${hue},95%,${62 + depth * 10}%,${a})`;
+    const sz = (1 + depth * 1.9) * (p.s > .97 ? 2 : 1);
+    fctx.fillRect(p.x, p.y, sz, sz);
+  }
+  requestAnimationFrame(drawField);
+}
+requestAnimationFrame(drawField);
+
+addEventListener("keydown", e => {
+  if (e.target.matches("input")) return;
+  if (e.key === "d" || e.key === "D") { dream = !dream; setLoopMode(dream ? "dream" : "awake"); }
+});
+
+/* ============ SCENES / NAV ============ */
+const scenes = $$(".scene");
+let curScene = 0;
+const dots = $("#dots");
+scenes.forEach((s, i) => {
+  const b = document.createElement("button");
+  b.setAttribute("aria-label", s.dataset.title);
+  b.innerHTML = `<span>${s.dataset.title}</span>`;
+  b.onclick = () => s.scrollIntoView({ behavior: "smooth" });
+  dots.appendChild(b);
+});
+const io = new IntersectionObserver(es => {
+  es.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add("in");
+  });
+}, { threshold: .18 });
+scenes.forEach(s => io.observe(s));
+function onScroll() {
+  const mid = scrollY + innerHeight * .45;
+  let idx = 0;
+  scenes.forEach((s, i) => { if (s.offsetTop <= mid) idx = i; });
+  if (idx !== curScene) {
+    curScene = idx; shape = +scenes[idx].dataset.shape;
+    fieldAlpha = idx === 0 || idx === scenes.length - 1 ? 1 : .32;
+  }
+  $$("#dots button").forEach((b, i) => b.classList.toggle("on", i === curScene));
+  $("#counter").innerHTML = `<b>${String(curScene + 1).padStart(2, "0")}</b> / ${scenes.length}`;
+  const max = document.documentElement.scrollHeight - innerHeight;
+  $("#progress").style.width = (max > 0 ? scrollY / max * 100 : 0) + "%";
+}
+addEventListener("scroll", onScroll, { passive: true }); onScroll();
+addEventListener("keydown", e => {
+  if (e.target.matches("input, textarea")) return;
+  let n = null;
+  if (["ArrowDown", "PageDown"].includes(e.key) || (e.key === " " && !e.shiftKey)) n = curScene + 1;
+  if (["ArrowUp", "PageUp"].includes(e.key) || (e.key === " " && e.shiftKey)) n = curScene - 1;
+  if (e.key === "Home") n = 0; if (e.key === "End") n = scenes.length - 1;
+  if (n !== null) { e.preventDefault(); scenes[Math.max(0, Math.min(scenes.length - 1, n))].scrollIntoView({ behavior: "smooth" }); }
+});
+
+/* typed text */
+const phrases = ["> predict(next_frame | frame, action)", "> imagine(1000 futures) → choose(best)", "> what_if(turn_left=True)", "> dream(steps=∞)"];
+let pi = 0, ci = 0, del = false;
+(function type() {
+  const el = $("#typed"), s = phrases[pi];
+  el.textContent = s.slice(0, ci);
+  if (!del && ci < s.length) ci++; else if (!del) { del = true; return setTimeout(type, 1600); }
+  else if (ci > 0) ci--; else { del = false; pi = (pi + 1) % phrases.length; }
+  setTimeout(type, del ? 22 : 55);
+})();
+
+/* ============ LOOP DIAGRAM ============ */
+const zb = $("#zbars"); const ZB = 9;
+for (let i = 0; i < ZB; i++) {
+  const r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  r.setAttribute("x", 222 + i * 8.6); r.setAttribute("width", 5.5); r.setAttribute("rx", 1.5);
+  r.setAttribute("fill", i % 2 ? "#9b7bff" : "#5ef2ff"); zb.appendChild(r);
+}
+const caps = {
+  awake: "Awake: the model watches the world, compresses it, predicts the next state and acts.",
+  dream: "Dream: observations switch off. The model feeds its own predictions back in and learns from imagined experience (Dreamer, Ha & Schmidhuber)."
+};
+function setLoopMode(m) {
+  $("#loopSvg").classList.toggle("dream", m === "dream");
+  $("#loopCap").textContent = caps[m];
+  $$(".loop-toggle .chip").forEach(c => c.classList.toggle("on", c.dataset.mode === m));
+}
+$$(".loop-toggle .chip").forEach(c => c.onclick = () => { dream = c.dataset.mode === "dream"; setLoopMode(c.dataset.mode); });
+(function zAnim(t) {
+  const d = dream;
+  $$("rect", zb).forEach((r, i) => {
+    const h = 10 + 22 * (.5 + .5 * Math.sin(t / (d ? 260 : 700) + i * 1.3 + Math.sin(t / 1300 + i)));
+    r.setAttribute("height", h); r.setAttribute("y", 252 - h);
+  });
+  requestAnimationFrame(zAnim);
+})(0);
+
+/* ============ BALL SANDBOX ============ */
+const ballC = $("#ball");
+const WORLD_W = 22, WORLD_H = 11, G = 9.81, ORIGIN = [1.2, .8];
+let trueWind, targetX, belief, throws, realPath = null, realT = 0, planning = null, lastMiss = null;
+function newWorld() {
+  trueWind = (Math.random() < .5 ? -1 : 1) * (1 + Math.random() * 1.8);
+  targetX = 12 + Math.random() * 7;
+  belief = { m: 0, s: 2 }; throws = 0; realPath = null; lastMiss = null;
+  $("#ballLog").textContent = "A new world with a different hidden wind. The model has to relearn it.";
+  updStats();
+}
+function simulate(angDeg, pow, wind, g, maxSteps = 600) {
+  const a = angDeg * Math.PI / 180; let x = ORIGIN[0], y = ORIGIN[1], vx = Math.cos(a) * pow, vy = Math.sin(a) * pow;
+  const pts = [[x, y]], dt = .02; let landed = null, bounces = 0;
+  for (let s = 0; s < maxSteps; s++) {
+    vx += wind * dt; vy -= g * dt; x += vx * dt; y += vy * dt;
+    if (y <= 0) { y = 0; if (landed === null) landed = x; vy = -vy * .45; vx *= .7; bounces++; if (bounces > 2) { pts.push([x, y]); break; } }
+    pts.push([x, y]);
+    if (x > WORLD_W + 2 || x < -2) break;
+  }
+  return { pts, landed: landed ?? x };
+}
+function updStats() {
+  $("#sExp").textContent = throws + (throws === 1 ? " throw" : " throws");
+  $("#sUnc").textContent = "±" + belief.s.toFixed(2);
+  $("#sWind").textContent = (belief.m >= 0 ? "+" : "") + belief.m.toFixed(2);
+  $("#sMiss").textContent = lastMiss === null ? "—" : lastMiss.toFixed(2) + " m";
+}
+const ang = $("#ang"), pow = $("#pow");
+ang.oninput = () => $("#angV").textContent = ang.value + "°";
+pow.oninput = () => $("#powV").textContent = (+pow.value).toFixed(1);
+let seedRollouts = [];
+function sampleRollouts() {
+  seedRollouts = Array.from({ length: 26 }, () => ({ w: belief.m + randn() * belief.s, g: G + randn() * belief.s * .25 }));
+}
+$("#throw").onclick = () => {
+  if (planning) return;
+  const r = simulate(+ang.value, +pow.value, trueWind, G);
+  realPath = r; realT = 0; throws++;
+  lastMiss = Math.abs(r.landed - targetX);
+  // learn: Bayesian-ish update toward true wind
+  const obs = trueWind + randn() * .15;
+  const k = belief.s * belief.s / (belief.s * belief.s + .3);
+  belief.m = belief.m + k * (obs - belief.m); belief.s = Math.max(.04, belief.s * .55);
+  sampleRollouts(); updStats();
+  $("#ballLog").textContent = lastMiss < .6 ? `Hit! Landed ${lastMiss.toFixed(2)} m from the target. The model now believes wind ≈ ${belief.m.toFixed(2)}.`
+    : `Missed by ${lastMiss.toFixed(2)} m. Reality disagreed with imagination, so the model updated its belief about the wind.`;
+};
+$("#plan").onclick = () => {
+  if (planning) return;
+  const cands = [];
+  for (let i = 0; i < 90; i++) {
+    const a = 15 + Math.random() * 60, p = 8 + Math.random() * 12;
+    const r = simulate(a, p, belief.m, G, 400);
+    cands.push({ a, p, r, err: Math.abs(r.landed - targetX) });
+  }
+  cands.sort((x, y) => x.err - y.err);
+  planning = { cands, t: 0, best: cands[0] };
+  $("#ballLog").textContent = "Planning: imagining 90 random shots and keeping the one predicted to land closest…";
+};
+$("#newWorld").onclick = () => { newWorld(); sampleRollouts(); };
+newWorld(); sampleRollouts();
+
+function drawBall() {
+  const { ctx, w, h } = fitCanvas(ballC);
+  const sc = Math.min(w / WORLD_W, (h - 30) / WORLD_H);
+  const ox = (w - WORLD_W * sc) / 2, gy = h - 26;
+  const X = x => ox + x * sc, Y = y => gy - y * sc;
+  ctx.clearRect(0, 0, w, h);
+  // grid
+  ctx.strokeStyle = "rgba(255,255,255,.04)"; ctx.lineWidth = 1;
+  for (let i = 0; i <= WORLD_W; i += 2) { ctx.beginPath(); ctx.moveTo(X(i), Y(0)); ctx.lineTo(X(i), Y(WORLD_H)); ctx.stroke(); }
+  for (let j = 0; j <= WORLD_H; j += 2) { ctx.beginPath(); ctx.moveTo(X(0), Y(j)); ctx.lineTo(X(WORLD_W), Y(j)); ctx.stroke(); }
+  ctx.strokeStyle = "rgba(255,255,255,.25)"; ctx.beginPath(); ctx.moveTo(X(0), gy); ctx.lineTo(X(WORLD_W), gy); ctx.stroke();
+  // wind hint particles (true wind, faint)
+  const tt = performance.now() / 1000;
+  ctx.fillStyle = "rgba(255,255,255,.12)";
+  for (let i = 0; i < 40; i++) {
+    const px = ((i * 2.37 + tt * trueWind * .9) % WORLD_W + WORLD_W) % WORLD_W, py = 1 + (i * 3.71) % (WORLD_H - 1);
+    ctx.fillRect(X(px), Y(py), 6, 1);
+  }
+  // target
+  const pulse = 1 + .15 * Math.sin(tt * 4);
+  ctx.strokeStyle = "#ff5c9a"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.ellipse(X(targetX), gy, 18 * pulse, 5 * pulse, 0, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = "rgba(255,92,154,.15)"; ctx.fill();
+  ctx.beginPath(); ctx.moveTo(X(targetX), gy); ctx.lineTo(X(targetX), gy - 46); ctx.stroke();
+  ctx.fillStyle = "#ff5c9a"; ctx.beginPath(); ctx.moveTo(X(targetX), gy - 46); ctx.lineTo(X(targetX) + 16, gy - 40); ctx.lineTo(X(targetX), gy - 34); ctx.fill();
+  // launcher
+  const a = +ang.value * Math.PI / 180;
+  ctx.save(); ctx.translate(X(ORIGIN[0]), Y(ORIGIN[1])); ctx.rotate(-a);
+  ctx.fillStyle = "#c9cde0"; ctx.fillRect(0, -5, 30, 10); ctx.restore();
+  ctx.fillStyle = "#2a2f45"; ctx.beginPath(); ctx.arc(X(ORIGIN[0]), Y(ORIGIN[1]), 11, 0, Math.PI * 2); ctx.fill();
+
+  const path = (pts, n = pts.length) => { ctx.beginPath(); for (let i = 0; i < n; i++) { const [x, y] = pts[i]; i ? ctx.lineTo(X(x), Y(y)) : ctx.moveTo(X(x), Y(y)); } ctx.stroke(); };
+
+  if (planning) {
+    planning.t += 1;
+    const n = Math.min(planning.cands.length, Math.floor(planning.t * 1.6));
+    ctx.lineWidth = 1;
+    for (let i = n - 1; i >= 0; i--) {
+      const c = planning.cands[i];
+      ctx.strokeStyle = i === 0 && planning.t > 70 ? "#52f2a1" : `rgba(155,123,255,${.08 + .25 * (1 - i / n)})`;
+      ctx.lineWidth = i === 0 && planning.t > 70 ? 2.5 : 1;
+      path(c.r.pts);
+    }
+    if (planning.t > 110) {
+      const b = planning.best; ang.value = Math.round(b.a); pow.value = b.p.toFixed(1); ang.oninput(); pow.oninput();
+      $("#ballLog").textContent = `Plan chosen: ${Math.round(b.a)}° at power ${b.p.toFixed(1)}. Predicted miss ${b.err.toFixed(2)} m. Now throw it for real.`;
+      planning = null;
+    }
+  } else {
+    // imagined rollouts
+    const landings = [];
+    seedRollouts.forEach(s => {
+      const r = simulate(+ang.value, +pow.value, s.w, s.g, 400);
+      landings.push(r.landed);
+      ctx.strokeStyle = "rgba(94,242,255,.13)"; ctx.lineWidth = 1; path(r.pts);
+    });
+    const mean = simulate(+ang.value, +pow.value, belief.m, G, 400);
+    ctx.setLineDash([5, 6]); ctx.strokeStyle = "#5ef2ff"; ctx.lineWidth = 1.8; path(mean.pts); ctx.setLineDash([]);
+    // landing distribution
+    const mu = landings.reduce((a, b) => a + b, 0) / landings.length;
+    const sd = Math.sqrt(landings.reduce((a, b) => a + (b - mu) ** 2, 0) / landings.length) + .05;
+    const gr = ctx.createRadialGradient(X(mu), gy, 0, X(mu), gy, sd * sc * 2);
+    gr.addColorStop(0, "rgba(94,242,255,.45)"); gr.addColorStop(1, "rgba(94,242,255,0)");
+    ctx.fillStyle = gr; ctx.beginPath(); ctx.ellipse(X(mu), gy, sd * sc * 2, 10, 0, 0, Math.PI * 2); ctx.fill();
+  }
+  // real
+  if (realPath) {
+    realT = Math.min(realPath.pts.length, realT + 2.2);
+    const n = Math.floor(realT);
+    ctx.strokeStyle = "rgba(255,181,71,.8)"; ctx.lineWidth = 2.2; path(realPath.pts, n);
+    const [bx, by] = realPath.pts[Math.max(0, n - 1)];
+    ctx.fillStyle = "#ffb547"; ctx.shadowColor = "#ffb547"; ctx.shadowBlur = 16;
+    ctx.beginPath(); ctx.arc(X(bx), Y(by), 6, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+  }
+  ctx.fillStyle = "rgba(255,255,255,.35)"; ctx.font = "10px JetBrains Mono, monospace";
+  if (w > 560) ctx.fillText("true wind: hidden", X(WORLD_W) - 110, 24);
+}
+
+/* ============ APPROACHES ============ */
+const AP = [
+  { k: "gen", name: "Generative / video", short: "predict pixels", c: "#5ef2ff",
+    how: "frames(t) + action → frames(t+1)",
+    p: "Train a large video model, usually diffusion or autoregressive transformers, conditioned on actions. The output is something you can see and play: the model is the game engine.",
+    pros: ["Visually rich, human-inspectable", "Learns from internet-scale video", "Real-time interaction is now possible"],
+    cons: ["Expensive to run", "Drifts over long horizons", "Wastes capacity on unpredictable detail"],
+    ex: ["Genie 3", "GameNGen", "Oasis", "Cosmos Predict", "GAIA-2", "Sora 2", "Runway GWM-1", "Matrix-Game"] },
+  { k: "jepa", name: "Latent / JEPA", short: "predict embeddings", c: "#9b7bff",
+    how: "enc(x) → predictor → enc(y)",
+    p: "Joint-Embedding Predictive Architectures predict in an abstract representation space, not pixels. The model ignores what can't be predicted (leaf flutter, noise) and keeps what matters for planning.",
+    pros: ["Efficient: no pixel reconstruction", "Strong for planning and robotics", "Self-supervised from video"],
+    cons: ["Can't easily be watched or visualized", "Risk of representation collapse", "Younger ecosystem"],
+    ex: ["V-JEPA 2", "LeWorldModel", "I-JEPA", "Navigation World Models", "AMI Labs"] },
+  { k: "rl", name: "Model-based RL", short: "predict reward & state", c: "#52f2a1",
+    how: "z, a → z′, r̂  ·  plan or learn in imagination",
+    p: "An agent learns compact latent dynamics plus reward and value predictions, then plans with tree search or trains its policy entirely inside imagined rollouts.",
+    pros: ["Very sample-efficient", "Proven on games and control", "Mature open-source code"],
+    cons: ["Usually task-specific", "Smaller scale than foundation models", "Reward design still needed"],
+    ex: ["DreamerV3", "Dreamer 4", "MuZero", "TD-MPC2", "IRIS", "DIAMOND", "PlaNet"] },
+  { k: "3d", name: "3D / spatial", short: "predict geometry", c: "#ffb547",
+    how: "prompt / image → persistent 3D scene",
+    p: "Generate explicit, persistent 3D worlds (Gaussian splats, meshes, radiance fields) that stay consistent as you move, so they can be exported to game engines and physics simulators.",
+    pros: ["Perfect spatial consistency", "Exportable to Unreal, Unity, Isaac", "Runs on consumer devices"],
+    cons: ["Mostly static: limited dynamics", "No built-in agents or physics", "Quality varies off-distribution"],
+    ex: ["Marble", "HunyuanWorld / HY-World", "Spark", "Genie 3 (implicit)"] },
+  { k: "sim", name: "Simulators & hybrids", short: "engineer the physics", c: "#ff5c9a",
+    how: "equations + learned components",
+    p: "The classic route: hand-built physics engines and digital twins, increasingly combined with learned models for appearance, sensors or hard-to-model physics. Much of today's robot learning still runs here.",
+    pros: ["Accurate, controllable, debuggable", "Massively parallel on GPUs", "Industry-standard"],
+    cons: ["Sim-to-real gap", "Costly to author worlds", "Can't learn from raw video"],
+    ex: ["Isaac Sim / Lab", "MuJoCo / MJX", "Genesis", "CARLA", "Omniverse", "Habitat"] }
+];
+let apIdx = 0;
+const apTabs = $("#apTabs");
+AP.forEach((a, i) => {
+  const b = document.createElement("button");
+  b.style.setProperty("--c", a.c);
+  b.innerHTML = `${a.name}<small>${a.short}</small>`;
+  b.onclick = () => setAp(i);
+  apTabs.appendChild(b);
+});
+function setAp(i) {
+  apIdx = i; const a = AP[i];
+  $$("button", apTabs).forEach((b, j) => b.classList.toggle("on", i === j));
+  const t = $("#apText"); t.style.setProperty("--c", a.c);
+  t.innerHTML = `<h3>${a.name}</h3><div class="how">${a.how}</div><p>${a.p}</p>
+    <div class="pc"><div><h5>Strengths</h5><ul>${a.pros.map(x => `<li>${x}</li>`).join("")}</ul></div>
+    <div class="con"><h5>Limits</h5><ul>${a.cons.map(x => `<li>${x}</li>`).join("")}</ul></div></div>
+    <div class="ex">${a.ex.map(x => `<span class="chip">${x}</span>`).join("")}</div>`;
+}
+setAp(0);
+const apC = $("#apCanvas");
+// room scene for the 3D tab: floor, three walls and a table-like object
+const roomPts = Array.from({ length: 1100 }, (_, i) => {
+  const f = i % 5, u = Math.random() * 2 - 1, v = Math.random() * 2 - 1;
+  const p = [[u, 1, v], [u, v, -1], [-1, v, u], [1, v, u], [u * .35, .55 + v * .1, Math.random() * .5 - .1]][f];
+  return [p, f];
+});
+const balls = Array.from({ length: 14 }, () => ({ x: Math.random(), y: Math.random() * .5, vx: (Math.random() - .5) * .01, vy: 0, r: .02 + Math.random() * .025 }));
+function drawAp(t) {
+  const { ctx, w, h } = fitCanvas(apC), a = AP[apIdx]; ctx.clearRect(0, 0, w, h);
+  const c = a.c, T = t / 1000;
+  ctx.font = "10px JetBrains Mono, monospace";
+  if (a.k === "gen") {
+    const fw = Math.min(120, w / 4.2), fh = fw * .7, y = h / 2 - fh / 2, speed = 40;
+    const off = (T * speed) % (fw + 14);
+    for (let i = -1; i < 7; i++) {
+      const x = 20 + i * (fw + 14) - off; const gen = i >= 3;
+      ctx.strokeStyle = gen ? c : "rgba(255,255,255,.25)"; ctx.lineWidth = 1;
+      ctx.strokeRect(x, y, fw, fh);
+      const frameT = Math.floor((T * speed + i * (fw + 14)) / (fw + 14));
+      // tiny scene: ground + jumping avatar
+      ctx.fillStyle = "rgba(255,255,255,.08)"; ctx.fillRect(x, y + fh * .75, fw, fh * .25);
+      const ph = frameT * .7, ax = x + fw * (.3 + .4 * ((Math.sin(ph) + 1) / 2)), ay = y + fh * .75 - Math.abs(Math.sin(ph * 1.3)) * fh * .35;
+      ctx.fillStyle = gen ? c : "#c9cde0"; ctx.fillRect(ax - 5, ay - 12, 10, 12);
+      if (gen) { ctx.globalAlpha = .25 + .15 * Math.sin(T * 6 + i); ctx.fillStyle = c; ctx.fillRect(x, y, fw, fh); ctx.globalAlpha = 1; }
+      ctx.fillStyle = gen ? c : "#8d93ab"; ctx.fillText(gen ? "generated" : "context", x + 4, y - 6);
+      ctx.fillText(["←", "→", "↑", "space"][Math.abs(frameT) % 4], x + 4, y + fh + 14);
+    }
+    ctx.fillStyle = "#8d93ab"; ctx.fillText("each frame = f(previous frames, key pressed)", 20, h - 18);
+  } else if (a.k === "jepa") {
+    const cx = w / 2, cy = h / 2;
+    const ctxP = [cx - w * .28, cy + Math.sin(T) * 20], tgt = [cx + w * .26, cy - 30 + Math.cos(T * .7) * 30];
+    const pred = [lerp(ctxP[0], tgt[0], .92) + Math.sin(T * 3) * 8, lerp(ctxP[1], tgt[1], .92) + Math.cos(T * 2) * 8];
+    // embedding cloud
+    for (let i = 0; i < 120; i++) { const px = (Math.sin(i * 91.7) * .5 + .5) * w, py = (Math.cos(i * 37.3) * .5 + .5) * h; ctx.fillStyle = "rgba(155,123,255,.15)"; ctx.fillRect(px, py, 2, 2); }
+    const node = (p, col, lbl) => { ctx.fillStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 14; ctx.beginPath(); ctx.arc(p[0], p[1], 8, 0, 7); ctx.fill(); ctx.shadowBlur = 0; ctx.fillStyle = "#eef0f8"; ctx.fillText(lbl, p[0] - 30, p[1] - 16); };
+    ctx.strokeStyle = c; ctx.setLineDash([4, 5]); ctx.lineDashOffset = -T * 20; ctx.beginPath(); ctx.moveTo(...ctxP); ctx.quadraticCurveTo(cx, cy - 120, ...pred); ctx.stroke(); ctx.setLineDash([]);
+    ctx.strokeStyle = "#ff5c9a"; ctx.beginPath(); ctx.moveTo(...pred); ctx.lineTo(...tgt); ctx.stroke();
+    node(ctxP, "#5ef2ff", "enc(context)"); node(tgt, "#52f2a1", "enc(future)"); node(pred, c, "prediction");
+    ctx.fillStyle = "#ff5c9a"; ctx.fillText("loss = distance in latent space", (pred[0] + tgt[0]) / 2 - 60, (pred[1] + tgt[1]) / 2 + 26);
+    ctx.fillStyle = "#8d93ab"; ctx.fillText("no pixels reconstructed, only meaning", 20, h - 18);
+  } else if (a.k === "rl") {
+    const root = [w / 2, 40], depth = 4, spread = w * .42;
+    const vis = Math.floor((T * 3) % 7);
+    const rec = (x, y, d, sp, id) => {
+      if (d >= depth) return;
+      for (let k = 0; k < 3; k++) {
+        const nx = x + (k - 1) * sp, ny = y + (h - 90) / depth;
+        const v = Math.sin(id * 7.1 + k * 3.3) * .5 + .5, on = d < vis;
+        ctx.strokeStyle = on ? `rgba(82,242,161,${.2 + v * .6})` : "rgba(255,255,255,.05)"; ctx.lineWidth = on ? 1 + v * 2 : 1;
+        ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(nx, ny); ctx.stroke();
+        if (on) { ctx.fillStyle = `hsl(${120 * v},80%,60%)`; ctx.beginPath(); ctx.arc(nx, ny, 3 + v * 3, 0, 7); ctx.fill(); }
+        rec(nx, ny, d + 1, sp / 3, id * 3 + k + 1);
+      }
+    };
+    rec(...root, 0, spread / 1.6, 1);
+    ctx.fillStyle = c; ctx.beginPath(); ctx.arc(...root, 8, 0, 7); ctx.fill();
+    ctx.fillStyle = "#8d93ab"; ctx.fillText("tree search over imagined futures, colored by predicted value", 20, h - 18);
+  } else if (a.k === "3d") {
+    const cx = w / 2, cy = h / 2 - 10, S = Math.min(w, h) * .28, ry = T * .4, rx = .45;
+    roomPts.forEach(([p, f]) => {
+      let [x, y, z] = p; let X = x * Math.cos(ry) - z * Math.sin(ry), Z = x * Math.sin(ry) + z * Math.cos(ry);
+      let Y = y * Math.cos(rx) - Z * Math.sin(rx); Z = y * Math.sin(rx) + Z * Math.cos(rx);
+      const ps = 3 / (3 + Z);
+      ctx.fillStyle = f === 4 ? "#ff5c9a" : f === 0 ? "rgba(255,181,71,.6)" : `rgba(255,181,71,${.3 + .45 * (1 - Z) / 2})`;
+      ctx.fillRect(cx + X * S * ps, cy + Y * S * ps, 2.2, 2.2);
+    });
+    ctx.fillStyle = "#8d93ab"; ctx.fillText("persistent geometry: walk around it, it stays put", 20, h - 18);
+  } else {
+    balls.forEach(b => {
+      b.vy += .0006; b.x += b.vx; b.y += b.vy;
+      if (b.y > .9 - b.r) { b.y = .9 - b.r; b.vy *= -.86; }
+      if (b.x < b.r || b.x > 1 - b.r) { b.vx *= -1; b.x = Math.max(b.r, Math.min(1 - b.r, b.x)); }
+    });
+    for (let i = 0; i < balls.length; i++) for (let j = i + 1; j < balls.length; j++) {
+      const A = balls[i], B = balls[j], dx = B.x - A.x, dy = B.y - A.y, d = Math.hypot(dx, dy), m = A.r + B.r;
+      if (d < m && d > 0) { const nx = dx / d, ny = dy / d, p = (A.vx - B.vx) * nx + (A.vy - B.vy) * ny; if (p > 0) { A.vx -= p * nx; A.vy -= p * ny; B.vx += p * nx; B.vy += p * ny; } const o = (m - d) / 2; A.x -= nx * o; A.y -= ny * o; B.x += nx * o; B.y += ny * o; }
+    }
+    if (Math.random() < .01) balls[Math.floor(Math.random() * balls.length)].vy -= .02;
+    ctx.strokeStyle = "rgba(255,255,255,.2)"; ctx.beginPath(); ctx.moveTo(0, .9 * h); ctx.lineTo(w, .9 * h); ctx.stroke();
+    const sc = Math.min(w, h);
+    balls.forEach((b, i) => { ctx.strokeStyle = c; ctx.fillStyle = i % 3 ? "rgba(255,92,154,.15)" : "rgba(255,92,154,.5)"; ctx.beginPath(); ctx.arc(b.x * w, b.y * h, b.r * sc, 0, 7); ctx.fill(); ctx.stroke(); });
+    ctx.fillStyle = "#8d93ab"; ctx.fillText("rigid-body physics: exact equations, step by step", 20, 24);
+  }
+}
+
+/* ============ TIMELINE ============ */
+const EV = [
+  ["1943", "Mental models", "Kenneth Craik", "theory", "Proposes that minds carry \"small-scale models\" of reality to anticipate events."],
+  ["1990", "Making the world differentiable", "J. Schmidhuber", "theory", "Recurrent nets that learn to predict the environment, used for planning and curiosity."],
+  ["1991", "Dyna", "Richard Sutton", "rl", "Integrates learning, planning and acting: learn a model, then train on simulated experience."],
+  ["2018", "World Models", "Ha & Schmidhuber", "rl", "VAE + MDN-RNN + controller. The agent learns to drive inside its own hallucinated dream."],
+  ["2019", "PlaNet → Dreamer", "Hafner et al.", "rl", "Latent dynamics models; Dreamer learns behaviors purely from imagined trajectories."],
+  ["2019", "MuZero", "DeepMind", "rl", "Plans with a learned model to master Go, chess, shogi and Atari without knowing the rules."],
+  ["2022", "A Path Towards AMI", "Yann LeCun", "jepa", "Position paper proposing JEPA and predictive world models as the core of intelligence."],
+  ["2022", "IRIS", "Micheli et al.", "rl", "Transformers as sample-efficient world models for Atari."],
+  ["2023", "DreamerV3", "Hafner et al.", "rl", "One algorithm, fixed hyperparameters: first to collect diamonds in Minecraft from scratch."],
+  ["2023", "GAIA-1", "Wayve", "ind", "A 9B generative world model for autonomous driving video."],
+  ["2023", "GraphCast", "Google DeepMind", "ind", "A learned weather simulator that outperforms the gold-standard medium-range forecast system."],
+  ["2024", "Sora", "OpenAI", "gen", "\"Video generation models as world simulators\" brings the term into the mainstream."],
+  ["2024", "Genie", "Google DeepMind", "gen", "Learns playable 2D worlds from unlabeled internet video, with latent actions."],
+  ["2024", "GameNGen", "Google Research", "gen", "A diffusion model runs DOOM in real time with no game engine."],
+  ["2024", "DIAMOND · Oasis", "Academia · Decart & Etched", "gen", "Diffusion world models; Oasis streams a playable Minecraft-like world, with open weights."],
+  ["2024", "Genie 2 · World Labs", "DeepMind · Fei-Fei Li", "3d", "From 2D to consistent 3D: interactive worlds from a single image."],
+  ["2025", "NVIDIA Cosmos", "NVIDIA", "ind", "Open-weight world foundation models for physical AI, launched at CES."],
+  ["2025", "Muse (WHAM)", "Microsoft · Ninja Theory", "gen", "A world and human action model for game ideation; weights released for research."],
+  ["2025", "GAIA-2", "Wayve", "ind", "Multi-camera, controllable driving world model for safety testing."],
+  ["2025", "V-JEPA 2", "Meta FAIR", "jepa", "Latent video world model enabling zero-shot robot planning in new environments."],
+  ["2025", "HunyuanWorld 1.0", "Tencent", "3d", "Open-source generation of immersive, explorable 3D worlds."],
+  ["2025", "Genie 3", "Google DeepMind", "gen", "Real-time 720p / 24fps interactive worlds from text, consistent for minutes."],
+  ["2025", "Dreamer 4", "Hafner et al.", "rl", "Learns to collect diamonds in Minecraft from offline data alone, inside a fast world model."],
+  ["2025", "Marble", "World Labs", "3d", "Commercial product: persistent, exportable 3D worlds from text, image or video."],
+  ["2026", "Project Genie", "Google", "gen", "Genie 3 world creation opens to subscribers (January)."],
+  ["2026", "Waymo World Model", "Waymo", "ind", "Built on Genie 3: camera and lidar simulation of rare driving edge cases (February)."],
+  ["2026", "AMI Labs · LeWorldModel", "Yann LeCun", "jepa", "LeCun's world-model lab raises ~$1.03B; LeWorldModel trains JEPA end-to-end from pixels."],
+  ["2026", "HY-World 2.0 · Happy Oyster", "Tencent · Alibaba", "3d", "Open 3D world generation and real-time directable worlds (April)."],
+  ["2026", "Cosmos 3", "NVIDIA", "ind", "Open-weight omni-model unifying reasoning, world simulation and action (16B–64B, June)."]
+];
+const TC = { theory: "#c9cde0", rl: "#52f2a1", gen: "#5ef2ff", jepa: "#9b7bff", "3d": "#ffb547", ind: "#ff5c9a" };
+const track = $("#tlTrack");
+track.innerHTML = EV.map(([y, t, o, k, p]) => `<div class="ev" data-k="${k}" style="--c:${TC[k]}"><div class="stem"></div><div class="dot"></div><div class="card panel"><div class="yr">${y}</div><h4>${t}</h4><div class="org">${o}</div><p>${p}</p></div></div>`).join("");
+$$("#tlFilters [data-f]").forEach(b => b.onclick = () => {
+  $$("#tlFilters [data-f]").forEach(x => x.classList.toggle("on", x === b));
+  $$(".ev").forEach(e => e.classList.toggle("off", b.dataset.f !== "all" && e.dataset.k !== b.dataset.f));
+});
+const tl = $("#tl"); let drag = null;
+tl.addEventListener("pointerdown", e => { drag = { x: e.clientX, s: tl.scrollLeft }; tl.setPointerCapture(e.pointerId); });
+tl.addEventListener("pointermove", e => { if (drag) tl.scrollLeft = drag.s - (e.clientX - drag.x); });
+tl.addEventListener("pointerup", () => drag = null);
+tl.addEventListener("wheel", e => { if (Math.abs(e.deltaX) < Math.abs(e.deltaY) && e.shiftKey) { tl.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive: false });
+
+/* ============ STATE ============ */
+const BARS = [
+  ["Weather & climate", 92, "production"], ["Games / interactive", 70, "public demos"], ["Autonomous driving", 74, "in prod sims"],
+  ["Film & 3D content", 60, "early products"], ["Robotics", 45, "pilots"], ["Industrial twins", 42, "pilots"], ["General agents", 30, "research"]
+];
+$("#bars").innerHTML = BARS.map(([n, v, l]) => `<div class="bar"><span>${n}</span><div class="tr"><i data-w="${v}"></i></div><em>${l}</em></div>`).join("");
+const stateIO = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return;
+  $$(".bar i").forEach(i => i.style.width = i.dataset.w + "%");
+  $$("[data-count]").forEach(el => {
+    const to = +el.dataset.count, dec = +(el.dataset.dec || 0), pre = el.dataset.pre || "", suf = el.dataset.suf || "";
+    const st = performance.now();
+    (function tick(n) { const p = Math.min(1, (n - st) / 1600), v = to * (1 - Math.pow(1 - p, 3)); el.innerHTML = pre + v.toFixed(dec) + `<i>${suf}</i>`; if (p < 1) requestAnimationFrame(tick); })(st);
+  });
+  stateIO.disconnect();
+}), { threshold: .3 });
+stateIO.observe($("#state"));
+
+/* ============ USE CASES ============ */
+const UC = [
+  { ic: "🤖", n: "Robotics", tag: "Embodied AI", d: "Train and evaluate robot policies in imagination, and plan actions by predicting their consequences.",
+    ex: [["V-JEPA 2", "Meta: zero-shot pick-and-place by planning in latent space, in labs it has never seen."], ["NVIDIA Cosmos + GR00T", "Synthetic training data and post-training for humanoid foundation models."], ["1X World Model", "A learned simulator used to evaluate humanoid policies before deployment."]] },
+  { ic: "🚗", n: "Driving", tag: "Autonomous vehicles", d: "Generate rare, dangerous scenarios on demand and replay real drives with counterfactual changes.",
+    ex: [["Waymo World Model", "Built on Genie 3; synchronized camera and lidar output for edge cases."], ["Wayve GAIA-2", "Controllable multi-camera driving scenes for safety testing."], ["Cosmos for AV", "Open models used to multiply and vary driving datasets."]] },
+  { ic: "🎮", n: "Games", tag: "Interactive media", d: "Neural game engines: the model renders and simulates the game frame by frame from player input.",
+    ex: [["GameNGen", "DOOM, playable, run entirely by a diffusion model."], ["Oasis · MineWorld · Matrix-Game", "Open, real-time, Minecraft-style worlds."], ["Muse (WHAM)", "Microsoft and Xbox: generating gameplay ideas for designers."]] },
+  { ic: "🎬", n: "Film & VFX", tag: "Content creation", d: "Generate persistent sets, previsualize shots and move a virtual camera through generated worlds.",
+    ex: [["Marble", "World Labs: export Gaussian splats and meshes into Unreal, Blender or the web."], ["Runway GWM-1", "General world model for explorable scenes and avatars."], ["Sora 2 / Veo 3", "Video models with emerging physical consistency."]] },
+  { ic: "🧠", n: "Agent training", tag: "Toward AGI", d: "Endless, diverse environments to train generalist agents, a curriculum that never runs out.",
+    ex: [["SIMA × Genie 3", "DeepMind agents pursuing goals inside generated worlds."], ["General Intuition", "$133.7M seed to learn spatial reasoning from gameplay clips."], ["Dreamer 4", "Agents trained entirely inside a learned world model."]] },
+  { ic: "🏭", n: "Industry", tag: "Digital twins", d: "Simulate factories, warehouses and supply chains, then test layouts and robot fleets before building them.",
+    ex: [["NVIDIA Omniverse + Cosmos", "Physically based twins plus learned world models for synthetic data."], ["Predictive maintenance", "Learned dynamics that predict failures from sensor streams."], ["Model predictive control", "Plan process setpoints with a learned plant model."]] },
+  { ic: "🏠", n: "Buildings & cities", tag: "Built environment", d: "Learned models of buildings, energy, air flow and noise enable what-if analysis and smarter control.",
+    ex: [["Building MPC", "Learned thermal and HVAC dynamics to cut energy while keeping comfort."], ["Urban twins", "Simulate traffic, noise and microclimate under new designs."], ["Walkable 3D", "Generate explorable spaces from sketches for early design reviews."]] },
+  { ic: "🌍", n: "Earth & climate", tag: "Science", d: "Learned simulators of the atmosphere and oceans: faster, cheaper and often more accurate.",
+    ex: [["GraphCast · GenCast", "DeepMind: medium-range and probabilistic weather forecasting."], ["Aurora", "Microsoft's open Earth-system foundation model (weather, air quality, waves)."], ["NVIDIA Earth-2", "Platform for climate digital twins."]] },
+  { ic: "🩺", n: "Health & bio", tag: "Medicine", d: "Simulate surgery for training and robot assistance; model cells and tissues to test hypotheses in silico.",
+    ex: [["Surgical simulation", "Learned tissue dynamics for training and autonomy research."], ["Virtual cell", "An emerging goal: predict how cells respond to perturbations."], ["Patient trajectories", "Forecast disease progression under different treatments."]] },
+  { ic: "🥽", n: "XR & education", tag: "Experiences", d: "Step into generated places: historical sites, training scenarios and personal worlds for VR.",
+    ex: [["Project Genie", "Create and explore worlds from a prompt."], ["HunyuanWorld", "Open 360° explorable scenes for VR."], ["Spark", "Render splat worlds on phones and in the browser."]] }
+];
+const orbit = $("#orbit"), spokes = $("#spokes");
+let ucIdx = 0;
+UC.forEach((u, i) => {
+  const a = -Math.PI / 2 + i / UC.length * Math.PI * 2, x = 50 + 38 * Math.cos(a), y = 50 + 38 * Math.sin(a);
+  const b = document.createElement("button"); b.className = "onode"; b.style.left = x + "%"; b.style.top = y + "%";
+  b.innerHTML = `<div class="ic">${u.ic}</div>${u.n}`; b.onclick = () => { setUc(i); ucAuto = false; };
+  orbit.appendChild(b);
+  const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  l.setAttribute("x1", 50); l.setAttribute("y1", 50); l.setAttribute("x2", x); l.setAttribute("y2", y);
+  l.setAttribute("stroke", "rgba(255,255,255,.06)"); l.setAttribute("stroke-width", ".3"); spokes.appendChild(l);
+});
+function setUc(i) {
+  ucIdx = i; const u = UC[i];
+  $$(".onode").forEach((b, j) => b.classList.toggle("on", j === i));
+  $$("line", spokes).forEach((l, j) => { l.setAttribute("stroke", j === i ? "#5ef2ff" : "rgba(255,255,255,.06)"); l.setAttribute("class", j === i ? "flow" : ""); });
+  $("#ucPanel").innerHTML = `<div class="tag">${u.tag}</div><h3>${u.ic} ${u.n}</h3><p>${u.d}</p><ul>${u.ex.map(([a, b], k) => `<li style="animation-delay:${k * 90}ms"><b>${a}</b> · ${b}</li>`).join("")}</ul>`;
+}
+setUc(0);
+let ucAuto = true;
+setInterval(() => { if (ucAuto && curScene === 7) setUc((ucIdx + 1) % UC.length); }, 4500);
+
+/* ============ LANDSCAPE ============ */
+// [name, org, year, access, category, desc, url]
+const TOOLS = [
+  ["Genie 3 / Project Genie", "Google DeepMind", "2025–26", "closed", "Interactive worlds", "Real-time 720p, 24fps worlds from text, consistent for minutes. Available to Google AI Ultra subscribers via Project Genie.", "https://deepmind.google/models/genie/"],
+  ["Marble", "World Labs", "2025–26", "closed", "3D worlds", "Persistent 3D worlds from text, image or video, with an editor. Exports splats and meshes. Freemium.", "https://marble.worldlabs.ai/"],
+  ["Spark", "World Labs", "2025–26", "open", "Rendering", "Open-source Gaussian splat renderer for three.js. Spark 2.0 targets phone-class devices.", "https://github.com/sparkjsdev/spark"],
+  ["NVIDIA Cosmos", "NVIDIA", "2025–26", "weights", "Physical AI", "World foundation models (Predict, Transfer, Reason and the Cosmos 3 omni-model). Open weights under NVIDIA's open model license.", "https://github.com/nvidia-cosmos"],
+  ["V-JEPA 2", "Meta FAIR", "2025", "open", "Latent / JEPA", "Self-supervised video world model; V-JEPA 2-AC plans robot actions zero-shot. Code and weights released.", "https://github.com/facebookresearch/vjepa2"],
+  ["Navigation World Models", "Meta FAIR", "2025", "open", "Robotics", "Conditional diffusion transformer that predicts egocentric video for navigation planning.", "https://github.com/facebookresearch/nwm"],
+  ["DreamerV3", "Danijar Hafner", "2023", "open", "Model-based RL", "Reference implementation of the general model-based RL agent. JAX; runs on Atari, DMC, Crafter, Minecraft.", "https://github.com/danijar/dreamerv3"],
+  ["TD-MPC2", "Hansen, Su, Wang", "2023", "open", "Model-based RL", "Scalable latent world-model MPC for continuous control; one model, 80+ tasks.", "https://github.com/nicklashansen/tdmpc2"],
+  ["DIAMOND", "Alonso, Jelley et al.", "2024", "open", "Diffusion WM", "Diffusion world model for RL; playable Atari and Counter-Strike demos. NeurIPS 2024 spotlight.", "https://github.com/eloialonso/diamond"],
+  ["IRIS", "Micheli, Alonso, Fleuret", "2022", "open", "Model-based RL", "Discrete autoencoder + transformer world model; data-efficient Atari agent.", "https://github.com/eloialonso/iris"],
+  ["Open-Oasis", "Decart & Etched", "2024", "weights", "Interactive worlds", "Open 500M-parameter version of Oasis, a real-time Minecraft-style world model.", "https://github.com/etched-ai/open-oasis"],
+  ["Matrix-Game 2.0", "Skywork AI", "2025", "open", "Interactive worlds", "Open real-time interactive world model with keyboard and mouse control.", "https://github.com/SkyworkAI/Matrix-Game"],
+  ["MineWorld", "Microsoft Research", "2025", "open", "Interactive worlds", "Real-time, open-source interactive world model on Minecraft.", "https://github.com/microsoft/MineWorld"],
+  ["Muse / WHAM", "Microsoft Research · Xbox", "2025", "weights", "Game ideation", "World and Human Action Model trained on Bleeding Edge gameplay; weights on Hugging Face.", "https://huggingface.co/microsoft/wham"],
+  ["HunyuanWorld / HY-World", "Tencent", "2025–26", "open", "3D worlds", "Open generation of immersive, explorable 3D worlds; HY-World 2.0 in April 2026.", "https://github.com/Tencent-Hunyuan/HunyuanWorld-1.0"],
+  ["Hunyuan-GameCraft", "Tencent", "2025", "open", "Interactive worlds", "Action-controllable interactive game video generation.", "https://github.com/Tencent-Hunyuan/Hunyuan-GameCraft-1.0"],
+  ["Wan 2.x", "Alibaba", "2025", "weights", "Video foundation", "Open video generation models, often used as a base for world-model research.", "https://github.com/Wan-Video/Wan2.1"],
+  ["Open-Sora", "HPC-AI Tech", "2024–25", "open", "Video foundation", "Fully open reproduction of Sora-style video generation: data, code, weights.", "https://github.com/hpcaitech/Open-Sora"],
+  ["GameNGen", "Google Research", "2024", "closed", "Interactive worlds", "Real-time DOOM simulated by a diffusion model. Paper and videos only.", "https://gamengen.github.io/"],
+  ["Sora 2", "OpenAI", "2025", "closed", "Video foundation", "Video and audio generation with improved physical plausibility. App and API.", "https://openai.com/sora/"],
+  ["Veo 3", "Google DeepMind", "2025", "closed", "Video foundation", "High-fidelity video generation with native audio, via the Gemini API and Vertex.", "https://deepmind.google/models/veo/"],
+  ["Runway GWM-1", "Runway", "2025", "closed", "Interactive worlds", "General world model family for explorable worlds, robotics and avatars.", "https://runwayml.com/"],
+  ["GAIA-2", "Wayve", "2025", "closed", "Driving", "Controllable multi-camera generative world model for AV validation.", "https://wayve.ai/thinking/gaia-2/"],
+  ["Waymo World Model", "Waymo", "2026", "closed", "Driving", "Internal simulator built on Genie 3, generating camera and lidar edge cases.", "https://waymo.com/"],
+  ["Happy Oyster", "Alibaba", "2026", "closed", "Interactive worlds", "Real-time world model with directing and wandering modes; clips up to 3 min.", null],
+  ["LeWorldModel", "Maes, LeCun et al.", "2026", "closed", "Latent / JEPA", "JEPA variant trained stably end-to-end from raw pixels with two loss terms. Research.", null],
+  ["1X World Model", "1X Technologies", "2024–25", "open", "Robotics", "Humanoid world-model challenge: open dataset and baselines for learned robot simulators.", "https://github.com/1x-technologies/1xgpt"],
+  ["LeRobot", "Hugging Face", "2024–26", "open", "Robotics", "Open datasets, policies and tooling for real-world robot learning.", "https://github.com/huggingface/lerobot"],
+  ["Aurora", "Microsoft", "2024–26", "open", "Earth system", "Foundation model of the atmosphere: weather, air pollution, ocean waves.", "https://github.com/microsoft/aurora"],
+  ["GraphCast / GenCast", "Google DeepMind", "2023–24", "open", "Earth system", "Learned weather simulators; code and weights published.", "https://github.com/google-deepmind/graphcast"],
+  ["Earth-2 Studio", "NVIDIA", "2024–26", "open", "Earth system", "Open Python toolkit for AI weather and climate models.", "https://github.com/NVIDIA/earth2studio"],
+  ["Isaac Sim / Isaac Lab", "NVIDIA", "2019–26", "sim", "Simulator", "GPU-accelerated robot simulation and learning framework; open source.", "https://github.com/isaac-sim/IsaacLab"],
+  ["MuJoCo / MJX", "Google DeepMind", "2012–26", "sim", "Simulator", "Fast, accurate physics for robotics and RL. Apache 2.0, with a JAX backend.", "https://github.com/google-deepmind/mujoco"],
+  ["Genesis", "Genesis-Embodied-AI", "2024", "sim", "Simulator", "Open, ultra-fast universal physics platform for robotics and embodied AI.", "https://github.com/Genesis-Embodied-AI/Genesis"],
+  ["CARLA", "CVC · Intel Labs", "2017–26", "sim", "Simulator", "Open-source simulator for autonomous driving research.", "https://github.com/carla-simulator/carla"],
+  ["Habitat", "Meta FAIR", "2019–26", "sim", "Simulator", "Embodied AI platform for navigation and rearrangement in 3D homes.", "https://github.com/facebookresearch/habitat-lab"],
+  ["Omniverse", "NVIDIA", "2019–26", "sim", "Digital twins", "OpenUSD-based platform for industrial digital twins and synthetic data.", "https://www.nvidia.com/en-us/omniverse/"]
+];
+const BADGE = { open: ["b-open", "open source"], weights: ["b-weights", "open weights"], closed: ["b-closed", "closed / API"], sim: ["b-sim", "simulator"] };
+let lsA = "all";
+function renderTools() {
+  const q = $("#lsSearch").value.trim().toLowerCase();
+  const list = TOOLS.filter(t => (lsA === "all" || t[3] === lsA) && (!q || t.slice(0, 6).join(" ").toLowerCase().includes(q)));
+  $("#lsGrid").innerHTML = list.map(([n, o, y, a, c, d, u], i) => `<div class="panel tool" style="animation-delay:${Math.min(i, 20) * 25}ms">
+    <div class="top"><div><h4>${n}</h4><div class="org">${o}</div></div><span class="badge ${BADGE[a][0]}">${BADGE[a][1]}</span></div>
+    <p>${d}</p><div class="ft"><span>${c} · ${y}</span>${u ? `<a href="${u}" target="_blank" rel="noopener">open ↗</a>` : "<span>paper</span>"}</div></div>`).join("") || `<p class="lede">Nothing matches. Try “robot”.</p>`;
+  $("#lsCount").textContent = `${list.length} / ${TOOLS.length} tools`;
+}
+$("#lsSearch").oninput = renderTools;
+$$("#lsAccess .chip").forEach(b => b.onclick = () => { lsA = b.dataset.a; $$("#lsAccess .chip").forEach(x => x.classList.toggle("on", x === b)); renderTools(); });
+renderTools();
+
+/* ============ GET STARTED ============ */
+const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+const hl = s => esc(s).split("\n").map(l => l.trim().startsWith("#") ? `<span class="c">${l}</span>` : l.replace(/(".*?")/g, '<span class="s">$1</span>').replace(/\b(from|import|git|pip|python|cd)\b/g, '<span class="k">$1</span>')).join("\n");
+const PATHS = [
+  { t: "Try a world in my browser", s: "zero setup", title: "browser", code:
+`# No install needed. Explore these:
+# 1. Marble (World Labs): generate a 3D world from a prompt
+#    https://marble.worldlabs.ai
+# 2. Project Genie (Google): real-time interactive worlds
+#    requires Google AI Ultra
+# 3. The demo on this page: scene 03`,
+    why: "<b>Best for:</b> getting a feel for the state of the art before you write any code." },
+  { t: "Train an agent in its dreams", s: "model-based RL", title: "DreamerV3", code:
+`git clone https://github.com/danijar/dreamerv3
+cd dreamerv3
+pip install -U -r requirements.txt
+# train on the Crafter survival benchmark
+python dreamerv3/main.py --logdir ~/logdir/run1 \\
+  --configs crafter`,
+    why: "<b>Best for:</b> learning how world models power RL. One GPU is enough for small benchmarks." },
+  { t: "Play a neural game engine", s: "diffusion world model", title: "DIAMOND", code:
+`git clone https://github.com/eloialonso/diamond
+cd diamond
+pip install -r requirements.txt
+# download a pretrained world model and play it
+python src/play.py --pretrained`,
+    why: "<b>Best for:</b> seeing a game rendered entirely by a neural network, on your own machine." },
+  { t: "Use video understanding for robots", s: "JEPA / latent", title: "V-JEPA 2 · transformers", code:
+`pip install -U transformers torch
+from transformers import AutoVideoProcessor, AutoModel
+
+repo = "facebook/vjepa2-vitl-fpc64-256"
+model = AutoModel.from_pretrained(repo)
+processor = AutoVideoProcessor.from_pretrained(repo)
+# embed a clip, then train a small predictor / probe on top`,
+    why: "<b>Best for:</b> robotics and video research where you need physical understanding without pixel generation." },
+  { t: "Generate physical-AI data", s: "foundation models", title: "NVIDIA Cosmos", code:
+`# Browse the model family: Predict, Transfer, Reason, Cosmos 3
+#   https://github.com/nvidia-cosmos
+#   https://huggingface.co/nvidia
+git clone https://github.com/nvidia-cosmos/cosmos-predict2
+# follow the repo README: download checkpoints, then run
+# video-to-world / text-to-world inference`,
+    why: "<b>Best for:</b> synthetic data for robots and AVs. Needs a large NVIDIA GPU; check the repo for current versions." },
+  { t: "Simulate physics precisely", s: "classic simulator", title: "MuJoCo", code:
+`pip install mujoco
+# open the interactive viewer
+python -m mujoco.viewer
+# drag a model XML from mujoco/model/ into the window,
+# or try MJX for massively parallel simulation in JAX`,
+    why: "<b>Best for:</b> robot learning baselines, and as ground truth to compare your learned world model against." }
+];
+let pIdx = 1;
+const pathsEl = $("#paths");
+PATHS.forEach((p, i) => { const b = document.createElement("button"); b.innerHTML = `${p.t}<small>${p.s}</small>`; b.onclick = () => setPath(i); pathsEl.appendChild(b); });
+function setPath(i) {
+  pIdx = i; const p = PATHS[i];
+  $$("button", pathsEl).forEach((b, j) => b.classList.toggle("on", i === j));
+  $("#codeTitle").textContent = p.title; $("#codeWhy").innerHTML = p.why;
+  const el = $("#codeBody"); const full = p.code; let n = 0;
+  clearInterval(setPath.iv);
+  setPath.iv = setInterval(() => { n += 6; el.innerHTML = hl(full.slice(0, n)); if (n >= full.length) clearInterval(setPath.iv); }, 16);
+}
+setPath(1);
+$("#copy").onclick = () => { navigator.clipboard?.writeText(PATHS[pIdx].code).then(() => { $("#copy").textContent = "copied ✓"; setTimeout(() => $("#copy").textContent = "copy", 1400); }).catch(() => {}); };
+
+/* ============ CHALLENGES ============ */
+const CH = [
+  ["Compounding error", "core", "Autoregressive rollouts feed predictions back in, so small errors snowball. Long-horizon consistency is still the number-one technical limit."],
+  ["Memory & consistency", "core", "Turn around and the room should still be there. Today's interactive models stay consistent for minutes, not hours."],
+  ["Physics hallucination", "accuracy", "Looking plausible isn't the same as being correct. Objects can pass through each other or appear and vanish. Benchmarks like Physics-IQ expose these gaps."],
+  ["Evaluation", "science", "There's no agreed yardstick. Visual quality, physical accuracy, controllability and usefulness for downstream agents are all measured differently."],
+  ["Compute & cost", "economics", "Real-time generation at 720p needs top-tier accelerators. Training uses millions of GPU-hours, which concentrates power in a few labs."],
+  ["Action-labeled data", "data", "Internet video has no action labels. Latent-action learning (Genie) helps, but robot and sensor data remain scarce."],
+  ["Sim-to-real gap", "deployment", "A policy that works in the dream may fail in reality, so models need grounding, uncertainty estimates and real-world validation."],
+  ["Safety & misuse", "society", "Photorealistic simulated worlds raise deepfake, IP and over-trust risks, especially when they're used to certify safety-critical systems."]
+];
+$("#chList").innerHTML = CH.map(([h, t, p], i) => `<div class="panel chl${i === 0 ? " open" : ""}"><div class="h">${h}<span>${t}</span></div><p>${p}</p></div>`).join("");
+$$(".chl").forEach(c => c.onclick = () => { $$(".chl").forEach(x => x.classList.toggle("open", x === c && !c.classList.contains("open"))); });
+const err = $("#err"), ground = $("#ground");
+err.oninput = () => $("#errV").textContent = (+err.value).toFixed(1) + "%";
+function drawDrift(t) {
+  const { ctx, w, h } = fitCanvas($("#drift")); ctx.clearRect(0, 0, w, h);
+  const steps = 240, e = +err.value / 100, gr = ground.checked, pad = 30;
+  const X = i => pad + i / steps * (w - pad * 2), Y = v => h / 2 - v * (h / 2 - pad);
+  // ground truth: damped-driven oscillator
+  const truth = []; let x = .8, v = 0;
+  for (let i = 0; i <= steps; i++) { truth.push(x); const a = -.02 * x - .002 * v + .0015 * Math.sin(i * .05); v += a; x += v * 1; }
+  // model rollout
+  const seed = Math.floor(t / 2500);
+  const rng = (k) => { const s = Math.sin(k * 127.1 + seed * 311.7) * 43758.5453; return (s - Math.floor(s)) - .5; };
+  const model = [], band = []; let mx = truth[0], mv = 0, unc = 0;
+  for (let i = 0; i <= steps; i++) {
+    if (gr && i % 40 === 0) { mx = truth[i]; mv = i ? truth[i] - truth[i - 1] : 0; unc = 0; }
+    model.push(mx); band.push(unc);
+    const a = -.02 * mx * (1 + e * 3) - .002 * mv + .0015 * Math.sin(i * .05);
+    mv += a + rng(i) * e * .02; mx += mv * (1 + e * .5);
+    unc += e * .015 * (1 + i % 40 / 20);
+  }
+  // axes
+  ctx.strokeStyle = "rgba(255,255,255,.08)"; ctx.beginPath(); ctx.moveTo(pad, h / 2); ctx.lineTo(w - pad, h / 2); ctx.stroke();
+  ctx.font = "10px JetBrains Mono, monospace"; ctx.fillStyle = "#5b6178"; ctx.fillText("rollout step →", w - pad - 90, h - 8); ctx.fillText("state", 4, 16);
+  // observation markers
+  if (gr) for (let i = 0; i <= steps; i += 40) { ctx.strokeStyle = "rgba(82,242,161,.35)"; ctx.setLineDash([2, 4]); ctx.beginPath(); ctx.moveTo(X(i), pad); ctx.lineTo(X(i), h - pad); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = "#52f2a1"; ctx.fillText("obs", X(i) + 3, pad + 8); }
+  // band
+  const prog = Math.min(1, ((t / 1000) % 6) / 4), n = Math.floor(prog * steps);
+  ctx.fillStyle = "rgba(255,92,154,.12)"; ctx.beginPath();
+  for (let i = 0; i <= n; i++) ctx.lineTo(X(i), Y(model[i] + band[i]));
+  for (let i = n; i >= 0; i--) ctx.lineTo(X(i), Y(model[i] - band[i]));
+  ctx.fill();
+  const line = (arr, col, lw, m) => { ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.beginPath(); for (let i = 0; i <= m; i++) i ? ctx.lineTo(X(i), Y(arr[i])) : ctx.moveTo(X(i), Y(arr[i])); ctx.stroke(); };
+  line(truth, "rgba(255,181,71,.9)", 2, steps);
+  line(model, "#ff5c9a", 2, n);
+  ctx.fillStyle = "#ff5c9a"; ctx.beginPath(); ctx.arc(X(n), Y(model[n]), 4, 0, 7); ctx.fill();
+  const finalErr = Math.abs(model[n] - truth[n]);
+  ctx.fillStyle = "#eef0f8"; ctx.font = "12px JetBrains Mono, monospace";
+  ctx.fillText(`drift at step ${n}: ${(finalErr * 100).toFixed(1)}%`, pad, pad - 10);
+  ctx.font = "10px JetBrains Mono, monospace";
+  ctx.fillStyle = "#ffb547"; ctx.fillText("— reality", w - pad - 160, pad - 10); ctx.fillStyle = "#ff5c9a"; ctx.fillText("— model's dream", w - pad - 90, pad - 10);
+}
+
+/* ============ MAIN LOOP for scene canvases ============ */
+function loop(t) {
+  if (curScene === 2) drawBall();
+  if (curScene === 4) drawAp(t);
+  if (curScene === 10) drawDrift(t);
+  requestAnimationFrame(loop);
+}
+// draw once so canvases aren't blank before first visit
+requestAnimationFrame(t => { drawBall(); drawAp(t); drawDrift(t); requestAnimationFrame(loop); });
+addEventListener("resize", () => { drawBall(); drawAp(performance.now()); drawDrift(performance.now()); });
+})();
+</script>
+</body>
+</html>
