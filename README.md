@@ -16,6 +16,8 @@ An interactive, scroll-driven presentation about AI **world models**. It covers 
 | 06 | History | Draggable, filterable timeline from 1943 to 2026 |
 | 07 | Current state | Animated KPIs and maturity by domain |
 | 08 | Use cases | Orbit explorer across 10 industries |
+| 08b | Robotics case: Ridge Q1 | Embedded live quadruped sim ([`examples/ridge-q1.html`](examples/ridge-q1.html)) plus a checklist verdict: a map-based planner with verbal memory, **not** a world model |
+| 08c | Ridge W | The same robot with a learned world model: it imagines 16 futures per route, learns slip, speed and payload limits from experience, and declines tasks it predicts will fail. Compare it with classic A* |
 | 09 | Software map | Searchable, filterable catalog of 37 tools (open/closed/simulator) |
 | 10 | Get started | Six hands-on paths with copyable commands |
 | 11 | Challenges | Compounding-error simulator plus open problems |

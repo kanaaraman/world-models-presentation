@@ -292,9 +292,52 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 .refs a:hover{color:var(--cyan);text-decoration:none}
 .foot{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:30px}
 
+/* ROBOTICS CASE STUDY */
+.rq{display:grid;grid-template-columns:1.15fr 1fr;gap:18px;margin-top:24px}
+.rq-frame{position:relative;min-height:470px;overflow:hidden}
+.rq-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#14181C}
+.rq-cover{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px;background:radial-gradient(ellipse at 50% 40%,rgba(94,242,255,.08),transparent 70%)}
+.rq-cover svg{width:min(320px,80%);height:auto}
+.rq-cover p{font-size:13px;color:var(--muted);max-width:380px}
+.rq-bar{position:absolute;right:10px;top:10px;z-index:3;display:flex;gap:6px}
+.rq-bar .chip{background:rgba(5,6,11,.8)}
+.crit{padding:22px;display:flex;flex-direction:column;gap:10px}
+.crit h3{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:400}
+.cr{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;font-size:13.5px;color:var(--muted)}
+.cr > i{font-style:normal;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;border:1px solid}
+.cr i.y{color:var(--green);border-color:rgba(82,242,161,.5);background:rgba(82,242,161,.08)}
+.cr i.n{color:var(--pink);border-color:rgba(255,92,154,.5);background:rgba(255,92,154,.08)}
+.cr i.p{color:var(--amber);border-color:rgba(255,181,71,.5);background:rgba(255,181,71,.08)}
+.cr b{color:var(--ink);font-weight:500;display:block}
+.verdict{margin-top:6px;padding:16px;border-radius:14px;border:1px solid rgba(255,92,154,.35);background:rgba(255,92,154,.06);font-size:14px;color:var(--muted)}
+.verdict b{color:var(--ink);font-weight:600}
+.verdict .score{font-family:var(--mono);font-size:12px;color:var(--pink);display:block;margin-bottom:4px}
+.rw{display:grid;grid-template-columns:1fr 330px;gap:18px;margin-top:22px}
+.rw-canvas{position:relative;aspect-ratio:24/16.5;align-self:start;overflow:hidden}
+#rwC{position:absolute;inset:0;width:100%;height:100%}
+.rw-side{padding:20px;display:flex;flex-direction:column;gap:14px}
+.pvr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pvr .stat b{font-size:13.5px}
+.mt{display:grid;gap:7px;font-size:12px}
+.mt-h,.mt-r{display:grid;grid-template-columns:62px 1fr 1fr 1fr;gap:8px;align-items:center}
+.mt-h{font-family:var(--mono);font-size:9.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+.mt-r span{color:var(--muted)}
+.mb{position:relative;height:9px;border-radius:5px;background:rgba(255,255,255,.05)}
+.mb .u{position:absolute;top:0;bottom:0;border-radius:5px;background:rgba(94,242,255,.18);transition:all .6s}
+.mb .v{position:absolute;top:-2px;width:3px;height:13px;border-radius:2px;background:var(--cyan);transition:left .6s}
+.mb .t{position:absolute;top:-4px;width:2px;height:17px;background:var(--amber);display:none}
+.reveal .mb .t{display:block}
+.lim{display:flex;align-items:flex-end;gap:2px;height:38px;margin-top:4px}
+.lim i{flex:1;background:var(--violet);border-radius:2px 2px 0 0;opacity:.8;transition:height .6s}
+.lim-ax{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9.5px;color:var(--dim)}
+.sb{display:flex;gap:8px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.sb div{flex:1;padding:8px 10px;border-radius:10px;border:1px solid var(--line)}
+.sb b{display:block;color:var(--ink);font-size:14px}
+
 /* responsive */
 @media (max-width:1000px){
-  .def-grid,.sand,.ap-body,.state-grid,.uc,.gs,.ch{grid-template-columns:1fr}
+  .def-grid,.sand,.ap-body,.state-grid,.uc,.gs,.ch,.rq,.rw{grid-template-columns:1fr}
+  .rw-canvas{align-self:auto}
   .why-grid{grid-template-columns:1fr 1fr}
   .kpis{grid-template-columns:1fr 1fr}
   .fut{grid-template-columns:1fr 1fr}
@@ -330,7 +373,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 <div class="grain"></div>
 <div id="progress"></div>
 <nav id="dots" aria-label="Scenes"></nav>
-<div id="counter"><b>01</b> / 13</div>
+<div id="counter"><b>01</b> / 15</div>
 <div id="hint"><kbd>↑</kbd> <kbd>↓</kbd> or scroll · <kbd>D</kbd> dream mode</div>
 
 <main>
@@ -343,8 +386,8 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
     <p class="lede rv" style="--d:3">AI that doesn't just <b>describe</b> the world, it <b>simulates</b> it. It can predict what happens next, imagine "what if", and plan before it acts.</p>
     <div class="typed rv" style="--d:4" id="typed"></div>
     <div class="hero-meta rv" style="--d:5">
-      <div><b>13 scenes</b>Scroll or use arrow keys</div>
-      <div><b>5 live demos</b>Drag, click, break things</div>
+      <div><b>15 scenes</b>Scroll or use arrow keys</div>
+      <div><b>6 live demos</b>Drag, click, break things</div>
       <div><b>40+ systems</b>Open and closed, all mapped</div>
     </div>
   </div>
@@ -581,10 +624,85 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
   </div>
 </section>
 
+<!-- 8b ROBOTICS CASE STUDY: RIDGE Q1 -->
+<section class="scene" id="ridge" data-title="Case: Ridge Q1" data-shape="4">
+  <div class="wrap">
+    <div class="eyebrow rv">08 — Robotics case study</div>
+    <h2 class="rv" style="--d:1">Is Ridge Q1 a <em>world model?</em></h2>
+    <p class="lede rv" style="--d:2"><b>Ridge Q1</b> is a 12-joint robot dog with a 4-joint arm, specified down to its 618 parts. It runs in a simulated warehouse: lidar builds a costmap, A* plans routes, Claude Haiku turns commands into pick-and-place steps, and practice rounds turn failures into written lessons. It's a great robotics example. Let's test it against the definition from scene 02.</p>
+    <div class="rq">
+      <div class="panel rq-frame rv" style="--d:3" id="rqFrame">
+        <div class="rq-bar"><a class="chip" href="examples/ridge-q1.html" target="_blank" rel="noopener">open full page ↗</a></div>
+        <div class="rq-cover" id="rqCover">
+          <svg viewBox="0 0 320 170" aria-hidden="true">
+            <g fill="none" stroke="#5ef2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="80" y="52" width="150" height="36" rx="10"/>
+              <rect x="226" y="44" width="34" height="26" rx="6"/>
+              <circle cx="252" cy="54" r="3" fill="#5ef2ff"/>
+              <path d="M96 88 L84 116 L100 146"/><path d="M118 88 L130 118 L114 146"/>
+              <path d="M196 88 L184 116 L200 146"/><path d="M216 88 L228 118 L212 146"/>
+              <path d="M150 52 L150 30 L182 18 L204 30" stroke="#9b7bff"/><path d="M204 30 l8 -6 M204 30 l9 4" stroke="#9b7bff"/>
+            </g>
+            <path d="M20 152 H300" stroke="rgba(255,255,255,.2)"/>
+            <g fill="#ffb547"><rect x="268" y="128" width="22" height="22" rx="2" opacity=".85"/></g>
+            <g stroke="rgba(94,242,255,.35)" stroke-dasharray="2 5"><path d="M243 57 L310 20"/><path d="M243 57 L314 70"/><path d="M243 57 L300 120"/></g>
+          </svg>
+          <button class="btn primary" id="rqLaunch">Launch the live Ridge Q1 sim ▸</button>
+          <p>Loads the full 3D simulation here (three.js). Its Claude-powered planning and practice need the page to run inside Claude; elsewhere it falls back to a keyword parser.</p>
+        </div>
+      </div>
+      <div class="panel crit rv" style="--d:4">
+        <h3>World-model checklist</h3>
+        <div class="cr"><i class="y">✓</i><div><b>Keeps an internal state of the world</b>A 10 cm costmap built from simulated lidar. A crate you drop only appears once the lidar sees it.</div></div>
+        <div class="cr"><i class="n">✕</i><div><b>Predicts the next state, given an action</b>A* only asks "is this cell free, and what does it cost?". It never asks "what happens if I lift 1.2 kg?" The physics lives in the simulator, which is the robot's <em>reality</em>, not a model inside its head.</div></div>
+        <div class="cr"><i class="n">✕</i><div><b>Imagines outcomes before acting</b>It discovers the real 1.0 kg wrist limit, the 0.13 m slip and the two-item bin by trying and failing for real. A world model would have predicted those failures.</div></div>
+        <div class="cr"><i class="p">~</i><div><b>Learned from data</b>The map is measured, not learned. The "lessons" are English rules Haiku writes after each round. That's useful, but it's a list of facts, not a model you can roll forward.</div></div>
+        <div class="cr"><i class="y">✓</i><div><b>Improves with experience</b>Practice scores go up as lessons build up. This is reflective learning, in the style of Reflexion.</div></div>
+        <div class="verdict"><span class="score">2 of 5 · verdict: not a world model</span><b>Ridge Q1 is a map-based planner with a language-model brain and a verbal memory.</b> Its lessons are, at best, a symbolic sketch of a world model: they record what went wrong but can't simulate what will happen next. To become a world model it needs a learned p(outcome | state, action) that it uses to imagine before it acts. That's the robot on the next scene.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8c RIDGE W: SAME ROBOT, WITH A WORLD MODEL -->
+<section class="scene" id="ridgew" data-title="Ridge W demo" data-shape="2">
+  <div class="wrap">
+    <div class="eyebrow rv">09 — The same robot, with a world model</div>
+    <h2 class="rv" style="--d:1">Ridge W <em>imagines</em> the delivery first</h2>
+    <p class="lede rv" style="--d:2">Same warehouse, same hidden truths: the spec sheet says 1.5 kg, but the wrist trips above <b>1.0 kg</b>, and the <b>wet floor</b> makes a loaded robot slip. Ridge W learns an action-conditioned model of speed, slip and payload from every step it takes. Before each run it imagines 16 futures per candidate route and picks the best one, or declines a task it predicts will fail. Compare it with the classic planner. Try 0.5 kg, then 0.9 kg, then 1.2 kg.</p>
+    <div class="rw rv" style="--d:3">
+      <div class="panel rw-canvas"><canvas id="rwC"></canvas></div>
+      <div class="panel rw-side" id="rwSide">
+        <div class="ctl"><label>Crate mass <b id="rwMV">0.50 kg</b></label><input type="range" id="rwM" min="0.3" max="1.5" step="0.05" value="0.5"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn primary" id="rwRun">Imagine, then deliver ✦</button>
+          <button class="btn" id="rwClassic">Classic A*</button>
+          <button class="btn" id="rwReset">Reset</button>
+        </div>
+        <div class="pvr">
+          <div class="stat"><small>Predicted</small><b id="rwPred">—</b></div>
+          <div class="stat"><small>Reality</small><b id="rwReal">—</b></div>
+        </div>
+        <div class="sb"><div>World model<b id="rwSW">0 / 0</b></div><div>Classic A*<b id="rwSC">0 / 0</b></div></div>
+        <div>
+          <div class="mt" id="rwTable"></div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:var(--muted)">Belief: wrist payload limit <b id="rwLimV" style="color:var(--ink);font-family:var(--mono)"></b></div>
+          <div class="lim" id="rwLim"></div>
+          <div class="lim-ax"><span>0.5 kg</span><span>1.0</span><span>1.5</span></div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="rwTruth"> Reveal the true physics (amber ticks)</label>
+        <div class="log" id="rwLog">The model starts out believing the spec sheet and knows nothing about the floor.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- 9 LANDSCAPE -->
 <section class="scene" id="software" data-title="Software map" data-shape="3">
   <div class="wrap">
-    <div class="eyebrow rv">08 — The landscape</div>
+    <div class="eyebrow rv">10 — The landscape</div>
     <h2 class="rv" style="--d:1">Every tool you can <em>use</em> today</h2>
     <p class="lede rv" style="--d:2">Filter by access level or category, or search. A green badge means fully open source, cyan means open weights, pink means closed or API-only, and amber marks simulators and engines.</p>
     <div class="ls-ctrl rv" style="--d:3">
@@ -605,7 +723,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 <!-- 10 GET STARTED -->
 <section class="scene" id="start" data-title="Get started" data-shape="4">
   <div class="wrap">
-    <div class="eyebrow rv">09 — Open source, hands-on</div>
+    <div class="eyebrow rv">11 — Open source, hands-on</div>
     <h2 class="rv" style="--d:1">Pick a path, <em>run</em> something tonight</h2>
     <div class="gs">
       <div class="panel paths rv" style="--d:2" id="paths"><h3>I want to…</h3></div>
@@ -621,7 +739,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 <!-- 11 CHALLENGES -->
 <section class="scene" id="challenges" data-title="Challenges" data-shape="2">
   <div class="wrap">
-    <div class="eyebrow rv">10 — The hard parts</div>
+    <div class="eyebrow rv">12 — The hard parts</div>
     <h2 class="rv" style="--d:1">Small errors, <em>compounded</em></h2>
     <p class="lede rv" style="--d:2">A world model feeds its own predictions back in as input. A 1% error per step doesn't stay at 1%. Move the slider, then switch on observations to see why closed-loop grounding matters.</p>
     <div class="ch">
@@ -640,7 +758,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 <!-- 12 FUTURE / CLOSE -->
 <section class="scene" id="future" data-title="What's next" data-shape="5">
   <div class="wrap">
-    <div class="eyebrow rv">11 — Looking ahead</div>
+    <div class="eyebrow rv">13 — Looking ahead</div>
     <h2 class="rv" style="--d:1">Where this is <em>heading</em></h2>
     <div class="fut">
       <div class="panel fu rv" style="--d:2"><h4>LLM + world model fusion</h4><p>Language for reasoning, a world model for physics. Vision-language-action models (Gemini Robotics, GR00T, π0) are the first step.</p></div>
@@ -1232,7 +1350,7 @@ function setUc(i) {
 }
 setUc(0);
 let ucAuto = true;
-setInterval(() => { if (ucAuto && curScene === 7) setUc((ucIdx + 1) % UC.length); }, 4500);
+setInterval(() => { if (ucAuto && scenes[curScene].id === "uses") setUc((ucIdx + 1) % UC.length); }, 4500);
 
 /* ============ LANDSCAPE ============ */
 // [name, org, year, access, category, desc, url]
@@ -1410,16 +1528,268 @@ function drawDrift(t) {
   ctx.fillStyle = "#ffb547"; ctx.fillText("— reality", w - pad - 160, pad - 10); ctx.fillStyle = "#ff5c9a"; ctx.fillText("— model's dream", w - pad - 90, pad - 10);
 }
 
+/* ============ RIDGE Q1 EMBED ============ */
+$("#rqLaunch").onclick = () => {
+  const f = document.createElement("iframe");
+  f.src = "examples/ridge-q1.html"; f.title = "Ridge Q1 live simulation"; f.loading = "lazy";
+  f.onload = () => { try { f.contentDocument.documentElement.dataset.theme = "dark"; } catch (e) {} };
+  $("#rqCover").replaceWith(f);
+};
+
+/* ============ RIDGE W: quadruped with a learned world model ============ */
+// Terrain: 0 concrete, 1 gravel, 2 ramp, 3 wet floor, 9 rack (blocked)
+const GW = 24, GH = 14, TN = ["Concrete", "Gravel", "Ramp", "Wet floor"];
+const GRID = Array.from({ length: GH }, (_, y) => Array.from({ length: GW }, (_, x) => {
+  if ((x === 4 || x === 5) && (y <= 4 || y >= 9)) return 9;
+  if ((x === 18 || x === 19) && ((y >= 1 && y <= 5) || (y >= 8 && y <= 12))) return 9;
+  if (x >= 9 && x <= 14) return y <= 2 ? 1 : y >= 11 ? 2 : 3;
+  return 0;
+}));
+const START = [1, 7], GOAL = [22, 7], HEAVY = 0.7;
+// the hidden truth the robot never sees directly
+const TRUTH = { speed: [1.0, .45, .65, .95], slipL: [.01, .03, .04, .05], slipH: [.01, .04, .08, .34], limit: 1.0, dropH: .65, dropL: .1 };
+const THS = Array.from({ length: 25 }, (_, i) => .5 + i * .05); // payload-limit hypotheses 0.5..1.7 kg
+let B; // beliefs = the learned world model
+function rwResetBeliefs() {
+  B = {
+    sp: TN.map(() => ({ sum: 0, n: 0 })),
+    sl: TN.map(() => [{ a: 1, b: 19 }, { a: 1, b: 19 }]), // [light, heavy] Beta counts
+    lim: THS.map(t => .02 + Math.exp(-((t - 1.5) ** 2) / (2 * .12 ** 2))) // prior: trust the 1.5 kg spec sheet
+  };
+}
+const spMean = k => (B.sp[k].sum + .9 * 2) / (B.sp[k].n + 2);
+const spSd = k => .4 / Math.sqrt(1 + B.sp[k].n / 2);
+const slMean = (k, h) => { const s = B.sl[k][h]; return s.a / (s.a + s.b); };
+const slSd = (k, h) => { const s = B.sl[k][h], n = s.a + s.b; return Math.sqrt(s.a * s.b / (n * n * (n + 1))); };
+const pLiftFail = m => { let lo = 0, all = 0; B.lim.forEach((w, i) => { all += w; if (THS[i] < m) lo += w; }); return lo / all; };
+function sampleLimit() { const all = B.lim.reduce((a, b) => a + b, 0); let r = Math.random() * all; for (let i = 0; i < THS.length; i++) { r -= B.lim[i]; if (r <= 0) return THS[i]; } return THS[THS.length - 1]; }
+
+function astar(costFn) {
+  const key = (x, y) => y * GW + x, g = new Map([[key(...START), 0]]), came = new Map(), open = [[...START]];
+  const h = (x, y) => Math.hypot(GOAL[0] - x, GOAL[1] - y) * .9;
+  while (open.length) {
+    let bi = 0; open.forEach((p, i) => { if (g.get(key(...p)) + h(...p) < g.get(key(...open[bi])) + h(...open[bi])) bi = i; });
+    const [x, y] = open.splice(bi, 1)[0];
+    if (x === GOAL[0] && y === GOAL[1]) { const path = [[x, y]]; let k = key(x, y); while (came.has(k)) { k = came.get(k); path.unshift([k % GW, Math.floor(k / GW)]); } return path; }
+    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
+      if (!dx && !dy) continue; const nx = x + dx, ny = y + dy;
+      if (nx < 0 || ny < 0 || nx >= GW || ny >= GH || GRID[ny][nx] === 9) continue;
+      if (dx && dy && (GRID[y][nx] === 9 || GRID[ny][x] === 9)) continue;
+      const ng = g.get(key(x, y)) + Math.hypot(dx, dy) * costFn(GRID[ny][nx]);
+      if (ng < (g.get(key(nx, ny)) ?? Infinity)) { g.set(key(nx, ny), ng); came.set(key(nx, ny), key(x, y)); open.push([nx, ny]); }
+    }
+  }
+  return null;
+}
+const segLen = (p, i) => i ? Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]) : 0;
+
+// one imagined future: sample a plausible world from the beliefs, then roll the route forward in it
+function imagine(path, m) {
+  const h = m > HEAVY ? 1 : 0, sp = TN.map((_, k) => Math.max(.1, spMean(k) + randn() * spSd(k)));
+  const sl = TN.map((_, k) => Math.min(1, Math.max(0, slMean(k, h) + randn() * slSd(k, h))));
+  if (m > sampleLimit()) return { t: 0, ok: false, fail: 0, why: "wrist trip", slips: [] };
+  let t = 0; const slips = [];
+  for (let i = 1; i < path.length; i++) {
+    const k = GRID[path[i][1]][path[i][0]]; t += segLen(path, i) / sp[k];
+    if (Math.random() < sl[k]) { slips.push(i); t += 1.5; if (Math.random() < (h ? TRUTH.dropH : TRUTH.dropL)) return { t, ok: false, fail: i, why: "dropped", slips }; }
+  }
+  return { t, ok: true, fail: -1, slips };
+}
+// reality: the same process, but with the hidden true physics
+function realize(path, m) {
+  const h = m > HEAVY ? 1 : 0, steps = [];
+  if (m > TRUTH.limit) return { ok: false, why: "wrist torque tripped at lift", steps, t: 0, lift: false };
+  let t = 0;
+  for (let i = 1; i < path.length; i++) {
+    const k = GRID[path[i][1]][path[i][0]], v = TRUTH.speed[k] * (1 + randn() * .06);
+    const slip = Math.random() < (h ? TRUTH.slipH : TRUTH.slipL)[k];
+    const dt = segLen(path, i) / v + (slip ? 1.5 : 0); t += dt;
+    const drop = slip && Math.random() < (h ? TRUTH.dropH : TRUTH.dropL);
+    steps.push({ i, k, v, slip, dt, drop });
+    if (drop) return { ok: false, why: "slipped and dropped the crate", steps, t, lift: true };
+  }
+  return { ok: true, steps, t, lift: true };
+}
+// learning: every real step is a training example for the model
+function learn(m, res) {
+  const h = m > HEAVY ? 1 : 0;
+  B.lim = B.lim.map((w, i) => res.lift ? (THS[i] < m ? w * .03 : w) : (THS[i] >= m ? w * .03 : w));
+  res.steps.forEach(s => { B.sp[s.k].sum += s.v; B.sp[s.k].n++; const c = B.sl[s.k][h]; if (s.slip) c.a++; else c.b++; });
+}
+
+let RW = null; const rwScore = { wm: [0, 0], cl: [0, 0] };
+function rwPlan(m) {
+  const h = m > HEAVY ? 1 : 0, cands = [], seen = new Set();
+  [0, 6, 25, 90].forEach(lam => {
+    const p = astar(k => 1 / spMean(k) + lam * slMean(k, h) * (h ? 1 : .3));
+    const id = p && p.map(q => q.join(",")).join(";");
+    if (p && !seen.has(id)) { seen.add(id); cands.push({ path: p }); }
+  });
+  cands.forEach(c => {
+    c.roll = Array.from({ length: 16 }, () => imagine(c.path, m));
+    const ok = c.roll.filter(r => r.ok); c.p = ok.length / 16;
+    c.t = ok.length ? ok.reduce((a, r) => a + r.t, 0) / ok.length : 0;
+    c.cost = c.t + 60 * (1 - c.p);
+  });
+  cands.sort((a, b) => a.cost - b.cost);
+  return cands;
+}
+function rwStart(mode) {
+  if (RW && RW.phase !== "done") return;
+  const m = +$("#rwM").value;
+  if (mode === "wm") {
+    const cands = rwPlan(m), best = cands[0], pl = pLiftFail(m);
+    const decline = pl > .5;
+    RW = { mode, m, cands, best, phase: "imagine", t0: performance.now(), decline };
+    $("#rwPred").textContent = decline ? `wrist trip ${(pl * 100).toFixed(0)}%` : `${best.t.toFixed(1)} s · ${(best.p * 100).toFixed(0)}% ok`;
+    $("#rwLog").textContent = decline ? `Imagined lifting ${m.toFixed(2)} kg: the model predicts a wrist torque trip (${(pl * 100).toFixed(0)}%). Declining and suggesting the load is split.`
+      : `Imagined ${cands.length} route${cands.length > 1 ? "s" : ""} × 16 futures. Chose the one with ${(best.p * 100).toFixed(0)}% predicted success in about ${best.t.toFixed(1)} s.`;
+  } else {
+    const p = astar(k => 1); // costmap only knows free vs blocked, like Ridge Q1's A*
+    RW = { mode, m, cands: [], best: { path: p }, phase: "imagine", t0: performance.now(), decline: false };
+    $("#rwPred").textContent = "no prediction";
+    $("#rwLog").textContent = "Classic A*: shortest free path on the costmap. It trusts the 1.5 kg spec and doesn't predict anything.";
+  }
+  $("#rwReal").textContent = "…";
+}
+function rwExecute() {
+  const r = RW;
+  if (r.decline) {
+    r.phase = "done"; const right = r.m > TRUTH.limit;
+    rwScore.wm[1]++; if (right) rwScore.wm[0]++;
+    $("#rwReal").textContent = right ? "declined ✓ (correct)" : "declined ✕ (too cautious)";
+    rwStats(); return;
+  }
+  r.res = realize(r.best.path, r.m); r.phase = "exec"; r.t0 = performance.now();
+}
+function rwFinish() {
+  const r = RW; r.phase = "done";
+  const s = r.mode === "wm" ? rwScore.wm : rwScore.cl; s[1]++; if (r.res.ok) s[0]++;
+  learn(r.m, r.res); // both modes produce experience; only the world-model planner uses it
+  $("#rwReal").textContent = r.res.ok ? `${r.res.t.toFixed(1)} s · delivered ✓` : `failed ✕`;
+  $("#rwLog").textContent = r.res.ok ? `Delivered in ${r.res.t.toFixed(1)} s${r.res.steps.some(s => s.slip) ? " (with a slip)" : ""}. ${r.res.steps.length} new observations went into the model.`
+    : `Reality: ${r.res.why}. The model updates its beliefs, so next time it will predict this.`;
+  rwStats();
+}
+function rwStats() {
+  $("#rwSW").textContent = `${rwScore.wm[0]} / ${rwScore.wm[1]}`;
+  $("#rwSC").textContent = `${rwScore.cl[0]} / ${rwScore.cl[1]}`;
+  const bar = (v, sd, tr, max) => `<div class="mb"><div class="u" style="left:${Math.max(0, (v - sd) / max * 100)}%;width:${Math.min(100, 2 * sd / max * 100)}%"></div><div class="v" style="left:calc(${Math.min(100, v / max * 100)}% - 1px)"></div><div class="t" style="left:${Math.min(100, tr / max * 100)}%"></div></div>`;
+  $("#rwTable").innerHTML = `<div class="mt-h"><span>terrain</span><span>speed</span><span>slip · light</span><span>slip · heavy</span></div>` +
+    TN.map((n, k) => `<div class="mt-r"><span>${n}</span>${bar(spMean(k), spSd(k), TRUTH.speed[k], 1.4)}${bar(slMean(k, 0), slSd(k, 0), TRUTH.slipL[k], .5)}${bar(slMean(k, 1), slSd(k, 1), TRUTH.slipH[k], .5)}</div>`).join("");
+  const mx = Math.max(...B.lim), all = B.lim.reduce((a, b) => a + b, 0);
+  $("#rwLim").innerHTML = B.lim.slice(0, 21).map((w, i) => `<i style="height:${Math.max(2, w / mx * 100)}%;${THS[i] === TRUTH.limit && $("#rwTruth").checked ? "background:var(--amber)" : ""}"></i>`).join("");
+  const mean = B.lim.reduce((a, w, i) => a + w * THS[i], 0) / all;
+  $("#rwLimV").textContent = `≈ ${mean.toFixed(2)} kg`;
+}
+$("#rwM").oninput = () => $("#rwMV").textContent = (+$("#rwM").value).toFixed(2) + " kg";
+$("#rwRun").onclick = () => rwStart("wm");
+$("#rwClassic").onclick = () => rwStart("cl");
+$("#rwReset").onclick = () => { rwResetBeliefs(); RW = null; rwScore.wm = [0, 0]; rwScore.cl = [0, 0]; $("#rwPred").textContent = "—"; $("#rwReal").textContent = "—"; $("#rwLog").textContent = "Beliefs reset to the spec sheet."; rwStats(); };
+$("#rwTruth").onchange = () => { $("#rwSide").classList.toggle("reveal", $("#rwTruth").checked); rwStats(); };
+rwResetBeliefs(); rwStats();
+
+function drawRW(now) {
+  const { ctx, w, h } = fitCanvas($("#rwC")); ctx.clearRect(0, 0, w, h);
+  const cs = Math.min((w - 20) / GW, (h - 46) / GH), ox = (w - cs * GW) / 2, oy = 34 + (h - 46 - cs * GH) / 2;
+  const cx = x => ox + (x + .5) * cs, cy = y => oy + (y + .5) * cs, T = now / 1000;
+  const COL = ["#141925", "#2b2618", "#1b2740", "#0c3247"];
+  for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) {
+    const k = GRID[y][x], px = ox + x * cs, py = oy + y * cs;
+    if (k === 9) { ctx.fillStyle = "#3a4552"; ctx.fillRect(px + 1, py + 1, cs - 2, cs - 2); ctx.strokeStyle = "#55616c"; ctx.strokeRect(px + 3, py + 3, cs - 6, cs - 6); continue; }
+    ctx.fillStyle = COL[k]; ctx.fillRect(px, py, cs, cs);
+    if (k === 1) { ctx.fillStyle = "rgba(255,210,140,.18)"; for (let j = 0; j < 3; j++) ctx.fillRect(px + ((x * 7 + j * 5) % 10) / 10 * cs, py + ((y * 3 + j * 7) % 10) / 10 * cs, 2, 2); }
+    if (k === 2) { ctx.strokeStyle = "rgba(120,160,255,.15)"; ctx.beginPath(); ctx.moveTo(px, py + cs * .5); ctx.lineTo(px + cs, py + cs * .5); ctx.stroke(); }
+    if (k === 3) { ctx.fillStyle = `rgba(94,242,255,${.05 + .05 * Math.sin(T * 2 + x * .9 + y * .6)})`; ctx.fillRect(px, py, cs, cs); }
+    ctx.strokeStyle = "rgba(255,255,255,.035)"; ctx.strokeRect(px, py, cs, cs);
+  }
+  ctx.font = `${Math.max(9, cs * .42)}px JetBrains Mono, monospace`; ctx.textAlign = "center";
+  ctx.fillStyle = "rgba(255,210,140,.55)"; ctx.fillText("GRAVEL", cx(11.5), cy(1.2));
+  ctx.fillStyle = "rgba(94,242,255,.5)"; ctx.fillText("WET FLOOR", cx(11.5), cy(6.8));
+  ctx.fillStyle = "rgba(140,170,255,.55)"; ctx.fillText("RAMP", cx(11.5), cy(12.2));
+  ctx.textAlign = "left";
+  // start / goal
+  ctx.strokeStyle = "#ffb547"; ctx.lineWidth = 2; ctx.strokeRect(cx(START[0]) - cs * .7, cy(START[1]) - cs * .7, cs * 1.4, cs * 1.4);
+  ctx.strokeStyle = "#52f2a1"; ctx.strokeRect(cx(GOAL[0]) - cs * .7, cy(GOAL[1]) - cs * .7, cs * 1.4, cs * 1.4);
+  ctx.fillStyle = "#52f2a1"; ctx.font = "10px JetBrains Mono, monospace"; ctx.fillText("goal", cx(GOAL[0]) - cs * .7, cy(GOAL[1]) - cs * .9);
+  ctx.fillStyle = "#ffb547"; ctx.fillText("pick-up", cx(START[0]) - cs * .7, cy(START[1]) - cs * .9);
+  const poly = (p, n = p.length, off = null) => { ctx.beginPath(); for (let i = 0; i < n; i++) { let [x, y] = p[i]; if (off) { x += off(i)[0]; y += off(i)[1]; } i ? ctx.lineTo(cx(x), cy(y)) : ctx.moveTo(cx(x), cy(y)); } ctx.stroke(); };
+  const r = RW; let robot = { x: START[0], y: START[1], a: 0, slip: 0, carry: true, fail: false };
+  const header = txt => { ctx.fillStyle = "#eef0f8"; ctx.font = "12px JetBrains Mono, monospace"; ctx.fillText(txt, 14, 20); };
+  if (!r) header("idle · set a crate mass and run");
+  else {
+    const el = (now - r.t0) / 1000;
+    if (r.phase === "imagine") {
+      const dur = r.mode === "wm" ? 2.2 : .6;
+      header(r.mode === "wm" ? (r.decline ? "imagining the lift…" : `imagining ${r.cands.length} routes × 16 futures…`) : "classic A*: shortest path");
+      if (r.mode === "wm" && !r.decline) {
+        r.cands.forEach((c, ci) => {
+          const shown = Math.min(16, Math.floor(el / dur * 22) - ci * 2);
+          for (let j = 0; j < shown; j++) {
+            const ro = c.roll[j], n = ro.ok ? c.path.length : Math.max(1, ro.fail + 1);
+            const seed = j * 13.7 + ci * 3.1;
+            ctx.strokeStyle = ro.ok ? "rgba(155,123,255,.22)" : "rgba(255,92,154,.35)"; ctx.lineWidth = 1;
+            poly(c.path, n, i => { const s = ro.slips.some(q => Math.abs(q - i) < 3) ? .45 : .12; return [Math.sin(seed + i * .7) * s, Math.cos(seed * 1.3 + i * .5) * s]; });
+            if (!ro.ok && ro.fail > 0) { const [fx, fy] = c.path[ro.fail]; ctx.fillStyle = "#ff5c9a"; ctx.font = "11px sans-serif"; ctx.fillText("✕", cx(fx) - 4, cy(fy) + 4); }
+          }
+          ctx.fillStyle = "#9b7bff"; ctx.font = "10px JetBrains Mono, monospace";
+          const mid = c.path[Math.floor(c.path.length * .55)]; ctx.fillText(`${(c.p * 100).toFixed(0)}% · ${c.t.toFixed(0)}s`, cx(mid[0]) + 6, cy(mid[1]) - 6);
+        });
+      }
+      if (r.decline) { ctx.fillStyle = "#ff5c9a"; ctx.font = "13px JetBrains Mono, monospace"; ctx.fillText(`predicted: wrist torque trip at ${r.m.toFixed(2)} kg`, cx(START[0]) + cs, cy(START[1]) - cs * 1.4); }
+      if (el > dur * .65 && r.best.path && !r.decline) { ctx.strokeStyle = "#5ef2ff"; ctx.lineWidth = 2.5; ctx.setLineDash([6, 5]); poly(r.best.path); ctx.setLineDash([]); }
+      if (el > dur) rwExecute();
+    } else if (r.phase === "exec" || r.phase === "done") {
+      if (r.phase === "exec") header(r.mode === "wm" ? "delivering · world-model plan" : "delivering · classic plan");
+      else header(r.decline ? "declined: model predicted failure" : r.res.ok ? "delivered" : `failed: ${r.res.why}`);
+      if (r.best.path && !r.decline) {
+        ctx.strokeStyle = r.mode === "wm" ? "rgba(94,242,255,.6)" : "rgba(201,205,224,.5)"; ctx.lineWidth = 2; ctx.setLineDash([6, 5]); poly(r.best.path); ctx.setLineDash([]);
+        const res = r.res, path = r.best.path, simT = r.phase === "done" ? Infinity : el * 4; // 4× speed
+        if (!res.lift) { robot.fail = true; robot.carry = false; if (r.phase === "exec" && el > 1.2) rwFinish(); }
+        else {
+          let acc = 0, i = 0, frac = 1;
+          for (; i < res.steps.length; i++) { if (acc + res.steps[i].dt > simT) { frac = (simT - acc) / res.steps[i].dt; break; } acc += res.steps[i].dt; }
+          const done = i >= res.steps.length;
+          const st = res.steps[Math.min(i, res.steps.length - 1)];
+          const p0 = path[done ? res.steps.length - 1 : i], p1 = path[done ? res.steps.length : i + 1];
+          const f = done ? 1 : Math.min(1, frac * (st.slip ? 1.4 : 1));
+          robot.x = lerp(p0[0], p1[0], f); robot.y = lerp(p0[1], p1[1], f); robot.a = Math.atan2(p1[1] - p0[1], p1[0] - p0[0]);
+          robot.slip = !done && st.slip ? 1 : 0;
+          ctx.strokeStyle = "#ffb547"; ctx.lineWidth = 2.5; poly(path, Math.min(path.length, i + 1)); ctx.beginPath(); ctx.moveTo(cx(p0[0]), cy(p0[1])); ctx.lineTo(cx(robot.x), cy(robot.y)); ctx.stroke();
+          res.steps.slice(0, i + (done ? 0 : 0)).forEach(s => { if (s.slip) { const [sx, sy] = path[s.i]; ctx.fillStyle = "#ff5c9a"; ctx.font = "10px JetBrains Mono, monospace"; ctx.fillText("slip", cx(sx) + 5, cy(sy) - 5); } });
+          if (done) { if (!res.ok) { robot.fail = true; robot.carry = false; } if (r.phase === "exec") rwFinish(); }
+        }
+      } else if (r.decline) { ctx.fillStyle = "#ff5c9a"; ctx.font = "13px JetBrains Mono, monospace"; ctx.fillText(`declined: split ${r.m.toFixed(2)} kg into two loads`, cx(START[0]) + cs, cy(START[1]) - cs * 1.4); }
+    }
+  }
+  // robot sprite (top-down quadruped)
+  const R = cs * .55, wob = robot.slip ? Math.sin(T * 40) * .25 : 0;
+  ctx.save(); ctx.translate(cx(robot.x), cy(robot.y)); ctx.rotate(robot.a + wob);
+  const gait = Math.sin(T * 12) * R * .25 * (r && r.phase === "exec" ? 1 : 0);
+  ctx.strokeStyle = "#c9cde0"; ctx.lineWidth = 2;
+  [[-1, -1, 1], [1, -1, -1], [-1, 1, -1], [1, 1, 1]].forEach(([sx, sy, ph]) => { ctx.beginPath(); ctx.moveTo(sx * R * .6, sy * R * .35); ctx.lineTo(sx * R * .6 + gait * ph, sy * R * .8); ctx.stroke(); });
+  ctx.fillStyle = "#e8eaf2"; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-R * .8, -R * .4, R * 1.6, R * .8, R * .25) : ctx.rect(-R * .8, -R * .4, R * 1.6, R * .8); ctx.fill();
+  ctx.fillStyle = "#2b3036"; ctx.beginPath(); ctx.arc(R * .85, 0, R * .22, 0, 7); ctx.fill();
+  const m = r ? r.m : +$("#rwM").value, crateCol = m > TRUTH.limit && $("#rwTruth").checked ? "#ff5c9a" : "#ffb547";
+  if (robot.carry) { ctx.fillStyle = crateCol; const cz = R * (.35 + m * .25); ctx.fillRect(-cz / 2 - R * .1, -cz / 2, cz, cz); }
+  ctx.restore();
+  if (robot.fail) { ctx.fillStyle = crateCol; const cz = cs * .5; ctx.save(); ctx.translate(cx(robot.x) + cs * .6, cy(robot.y) + cs * .5); ctx.rotate(.5); ctx.fillRect(-cz / 2, -cz / 2, cz, cz); ctx.restore(); ctx.fillStyle = "#ff5c9a"; ctx.font = "16px sans-serif"; ctx.fillText("✕", cx(robot.x) - 5, cy(robot.y) - cs * .8); }
+  ctx.fillStyle = "#5b6178"; ctx.font = "10px JetBrains Mono, monospace";
+  ctx.fillText(`crate ${m.toFixed(2)} kg${m > HEAVY ? " · heavy" : ""}`, w - 130, 20);
+}
+
 /* ============ MAIN LOOP for scene canvases ============ */
 function loop(t) {
-  if (curScene === 2) drawBall();
-  if (curScene === 4) drawAp(t);
-  if (curScene === 10) drawDrift(t);
+  const id = scenes[curScene].id;
+  if (id === "sandbox") drawBall();
+  if (id === "schools") drawAp(t);
+  if (id === "ridgew") drawRW(t);
+  if (id === "challenges") drawDrift(t);
   requestAnimationFrame(loop);
 }
 // draw once so canvases aren't blank before first visit
-requestAnimationFrame(t => { drawBall(); drawAp(t); drawDrift(t); requestAnimationFrame(loop); });
-addEventListener("resize", () => { drawBall(); drawAp(performance.now()); drawDrift(performance.now()); });
+requestAnimationFrame(t => { drawBall(); drawAp(t); drawRW(t); drawDrift(t); requestAnimationFrame(loop); });
+addEventListener("resize", () => { const t = performance.now(); drawBall(); drawAp(t); drawRW(t); drawDrift(t); });
 })();
 </script>
 </body>
