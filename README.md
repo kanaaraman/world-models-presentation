@@ -19,6 +19,8 @@ An interactive, scroll-driven presentation about AI **world models**. It covers 
 | 08b | Robotics case: Ridge Q1 | Embedded live quadruped sim ([`examples/ridge-q1.html`](examples/ridge-q1.html)) plus a checklist verdict: a map-based planner with verbal memory, **not** a world model |
 | 08c | Ridge W | The same robot with a learned world model: it imagines 16 futures per route, learns slip, speed and payload limits from experience, and declines tasks it predicts will fail. Compare it with classic A* |
 | 08d | MuJoCo demo | **Real MuJoCo 3.14 (WebAssembly)** is the "reality". The agent explores, fits a world model Δs = f(s, a), and swings up a cart-pole with MPPI planning entirely in its imagination |
+| 08e | Isaac Lab | NVIDIA Isaac Lab 3.0's **official browser demos** embedded live (ANYmal-D, G1, Franka lift/drawer/cloth, cartpole, dominoes, MPM), plus throughput bars from Isaac Lab's published benchmarks (up to ~1M env-steps/s) and a live "robot-hours simulated" counter |
+| 08f | Isaac Lab × world models | Three pipelines: Isaac Lab as a data factory for a learned world model ([`examples/isaaclab_world_model.py`](examples/isaaclab_world_model.py)), Isaac Lab Mimic → Cosmos Transfer, and model-free RL as the baseline |
 | 09 | Software map | Searchable, filterable catalog of 37 tools (open/closed/simulator) |
 | 10 | Get started | Six hands-on paths with copyable commands |
 | 11 | Challenges | Compounding-error simulator plus open problems |
@@ -41,6 +43,16 @@ uv run --with mujoco --with numpy python mujoco_world_model.py --view   # live M
 ```
 
 Typical output: one-step θ̇ error ≈ 0.014 rad/s, swing-up after ~1.8 s, 100% upright afterwards, ~8 ms per plan.
+
+## Isaac Lab example (Python, NVIDIA GPU)
+
+[`examples/isaaclab_world_model.py`](examples/isaaclab_world_model.py) steps thousands of parallel Isaac Lab environments with exploratory actions, saves `(obs, action, next_obs)` transitions, trains an MLP world model, and reports 1-step and 10-step open-loop error against the simulator. Run it from an Isaac Lab 3.0 checkout:
+
+```bash
+uv run python /path/to/examples/isaaclab_world_model.py --task Isaac-Cartpole --num_envs 4096 --steps 300
+```
+
+It's written against the Isaac Lab 3.0 API (the same calls as Isaac Lab's own random agent) but hasn't been run here, because it needs an NVIDIA GPU.
 
 ## Run locally
 

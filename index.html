@@ -334,9 +334,35 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 .sb div{flex:1;padding:8px 10px;border-radius:10px;border:1px solid var(--line)}
 .sb b{display:block;color:var(--ink);font-size:14px}
 
+/* ISAAC LAB */
+.il-facts{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 0}
+.il-facts .chip b{color:var(--ink);font-weight:600}
+#ilFrame{display:flex;flex-direction:column;min-height:560px}
+.il-chips{display:flex;flex-wrap:wrap;gap:6px;padding:10px 90px 10px 10px;border-bottom:1px solid var(--line);position:relative;z-index:3}
+#ilFrame iframe,#ilFrame .rq-cover{position:relative;inset:auto;flex:1;width:100%;min-height:460px}
+.il-grid{grid-template-columns:1.35fr 1fr}
+.tp{display:grid;grid-template-columns:150px 1fr 70px;gap:10px;align-items:center;font-size:12.5px;margin-bottom:9px}
+.tp span{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tp .tr{height:10px;border-radius:6px;background:rgba(255,255,255,.05);overflow:hidden}
+.tp .tr i{display:block;height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,#52f2a1,var(--cyan));transition:width 1s cubic-bezier(.2,.8,.2,1)}
+.tp em{font-style:normal;font-family:var(--mono);font-size:11px;color:var(--ink);text-align:right}
+.tp-ctrl{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.xp{margin-top:12px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);font-size:13px;color:var(--muted)}
+.xp b{font-family:var(--mono);color:var(--green);font-size:18px;display:block}
+.flow-svg{width:100%;height:auto;display:block;margin-bottom:6px}
+.flow-svg text{font-family:var(--mono);font-size:11px;fill:var(--muted)}
+.flow-svg .bx{fill:rgba(16,19,32,.95);stroke-width:1.4}
+.flow-svg .bt{font-family:var(--display);font-size:13px;fill:var(--ink);font-weight:500}
+.gifs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0 8px}
+.gifs figure{margin:0}
+.gifs img{width:100%;border-radius:10px;border:1px solid var(--line);display:block;background:#0b0d16;aspect-ratio:16/9;object-fit:cover}
+.gifs figcaption{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:4px}
+
 /* responsive */
 @media (max-width:1000px){
   .def-grid,.sand,.ap-body,.state-grid,.uc,.gs,.ch,.rq,.rw{grid-template-columns:1fr}
+  .tp{grid-template-columns:110px 1fr 60px}
+  .il-grid{grid-template-columns:1fr}
   .rw-canvas{align-self:auto}
   .why-grid{grid-template-columns:1fr 1fr}
   .kpis{grid-template-columns:1fr 1fr}
@@ -373,7 +399,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 <div class="grain"></div>
 <div id="progress"></div>
 <nav id="dots" aria-label="Scenes"></nav>
-<div id="counter"><b>01</b> / 16</div>
+<div id="counter"><b>01</b> / 18</div>
 <div id="hint"><kbd>↑</kbd> <kbd>↓</kbd> or scroll · <kbd>D</kbd> dream mode</div>
 
 <main>
@@ -386,8 +412,8 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
     <p class="lede rv" style="--d:3">AI that doesn't just <b>describe</b> the world, it <b>simulates</b> it. It can predict what happens next, imagine "what if", and plan before it acts.</p>
     <div class="typed rv" style="--d:4" id="typed"></div>
     <div class="hero-meta rv" style="--d:5">
-      <div><b>16 scenes</b>Scroll or use arrow keys</div>
-      <div><b>7 live demos</b>Drag, click, break things</div>
+      <div><b>18 scenes</b>Scroll or use arrow keys</div>
+      <div><b>8 live demos</b>Drag, click, break things</div>
       <div><b>40+ systems</b>Open and closed, all mapped</div>
     </div>
   </div>
@@ -737,10 +763,66 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
   </div>
 </section>
 
+<!-- 8e ISAAC LAB: THE ENGINEERED WORLD AT GPU SCALE -->
+<section class="scene" id="isaaclab" data-title="Isaac Lab" data-shape="4">
+  <div class="wrap">
+    <div class="eyebrow rv">11 — NVIDIA Isaac Lab</div>
+    <h2 class="rv" style="--d:1">A million robot <em>worlds</em> per second</h2>
+    <p class="lede rv" style="--d:2"><b>Isaac Lab</b> is NVIDIA's open-source, GPU-accelerated framework for robot learning: reinforcement learning, imitation learning and post-training. It runs thousands of copies of a robot's world in parallel on one GPU. Version 3.0 (released 20 Oct 2026) is multi-backend: <b>Newton</b> (built on MuJoCo Warp), PhysX via Isaac Sim, OVPhysX and Kamino. Below are its <b>official browser demos</b>, with real Newton physics and pretrained policies, embedded live.</p>
+    <div class="il-facts rv" style="--d:3">
+      <span class="chip"><b>3.0</b> · released 20 Oct 2026</span><span class="chip"><b>BSD-3</b> open source</span><span class="chip"><b>30+</b> ready-to-train environments</span><span class="chip"><b>16+</b> robots</span><span class="chip"><b>4</b> physics backends</span><span class="chip">RSL RL · SKRL · RL Games · SB3 · TorchRL</span>
+    </div>
+    <div class="rq il-grid rv" style="--d:4;margin-top:18px">
+      <div class="panel rq-frame" id="ilFrame">
+        <div class="il-chips" id="ilChips"></div>
+        <div class="rq-bar"><a class="chip" id="ilOpen" href="https://isaac-sim.github.io/IsaacLab/demos/interactive/" target="_blank" rel="noopener">gallery ↗</a></div>
+        <div class="rq-cover" id="ilCover">
+          <svg viewBox="0 0 320 150" aria-hidden="true"><g fill="none" stroke="#52f2a1" stroke-width="2" stroke-linecap="round">
+            <rect x="96" y="40" width="120" height="30" rx="8"/><path d="M110 70 l-10 28 l12 26 M134 70 l10 28 l-12 26 M178 70 l-10 28 l12 26 M202 70 l10 28 l-12 26"/>
+            <path d="M216 50 l24 -8" /><circle cx="246" cy="40" r="7"/></g>
+            <g stroke="rgba(82,242,161,.25)"><path d="M20 128 H300"/></g>
+            <g fill="rgba(94,242,255,.5)"><circle cx="40" cy="30" r="2"/><circle cx="280" cy="24" r="2"/><circle cx="60" cy="96" r="2"/><circle cx="270" cy="100" r="2"/></g></svg>
+          <button class="btn primary" id="ilLaunch">Launch ANYmal-D policy demo ▸</button>
+          <p>Loads Isaac Lab's official WebAssembly demo from isaac-sim.github.io. Pick another demo above. Drag to orbit, scroll to zoom, and use the controls to steer or push.</p>
+        </div>
+      </div>
+      <div class="panel crit">
+        <h3>Training throughput · environment steps per second</h3>
+        <div class="tp-ctrl" id="tpCtrl">
+          <button class="chip on" data-b="0">Newton · MuJoCo Warp</button>
+          <button class="chip" data-b="1">Isaac Sim · PhysX</button>
+          <button class="chip" data-b="2">OVPhysX</button>
+        </div>
+        <div id="tpBars"></div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--dim)">8,192 parallel envs · NVIDIA RTX PRO 6000 Blackwell · highest recorded mean in Isaac Lab's published benchmarks (Sep–Oct 2026). *Camera tasks render images too.</div>
+        <div class="xp">Rough-terrain ANYmal-D on Newton collects about 141,587 steps/s at 20 ms per control step. That's roughly 47 minutes of robot experience every second. Since you opened this scene:<b id="ilXp">0 robot-hours</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8f ISAAC LAB × WORLD MODELS -->
+<section class="scene" id="isaacwm" data-title="Isaac Lab × WMs" data-shape="1">
+  <div class="wrap">
+    <div class="eyebrow rv">12 — Simulator meets world model</div>
+    <h2 class="rv" style="--d:1">Three ways Isaac Lab <em>feeds</em> world models</h2>
+    <p class="lede rv" style="--d:2">Is Isaac Lab a world model? It's an <b>engineered</b> one: exact, steppable physics that people wrote, not a model that was learned (the "simulators" school from scene 05). Its job in the world-model story is to be the <b>data factory, the testbed and the ground truth</b>. Pick a pipeline.</p>
+    <div class="gs">
+      <div class="panel paths rv" style="--d:3" id="ilPaths"><h3>Pipeline</h3></div>
+      <div class="panel code rv" style="--d:4">
+        <div class="code-head"><span class="dots3"><i></i><i></i><i></i></span><span id="ilCodeTitle">terminal</span><span class="sp"></span><button class="chip" id="ilCopy">copy</button></div>
+        <div style="padding:16px 20px 0" id="ilVis"></div>
+        <pre id="ilCode" style="min-height:150px"></pre>
+        <div class="why-pick" id="ilWhy"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- 9 LANDSCAPE -->
 <section class="scene" id="software" data-title="Software map" data-shape="3">
   <div class="wrap">
-    <div class="eyebrow rv">11 — The landscape</div>
+    <div class="eyebrow rv">13 — The landscape</div>
     <h2 class="rv" style="--d:1">Every tool you can <em>use</em> today</h2>
     <p class="lede rv" style="--d:2">Filter by access level or category, or search. A green badge means fully open source, cyan means open weights, pink means closed or API-only, and amber marks simulators and engines.</p>
     <div class="ls-ctrl rv" style="--d:3">
@@ -761,7 +843,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 <!-- 10 GET STARTED -->
 <section class="scene" id="start" data-title="Get started" data-shape="4">
   <div class="wrap">
-    <div class="eyebrow rv">12 — Open source, hands-on</div>
+    <div class="eyebrow rv">14 — Open source, hands-on</div>
     <h2 class="rv" style="--d:1">Pick a path, <em>run</em> something tonight</h2>
     <div class="gs">
       <div class="panel paths rv" style="--d:2" id="paths"><h3>I want to…</h3></div>
@@ -777,7 +859,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 <!-- 11 CHALLENGES -->
 <section class="scene" id="challenges" data-title="Challenges" data-shape="2">
   <div class="wrap">
-    <div class="eyebrow rv">13 — The hard parts</div>
+    <div class="eyebrow rv">15 — The hard parts</div>
     <h2 class="rv" style="--d:1">Small errors, <em>compounded</em></h2>
     <p class="lede rv" style="--d:2">A world model feeds its own predictions back in as input. A 1% error per step doesn't stay at 1%. Move the slider, then switch on observations to see why closed-loop grounding matters.</p>
     <div class="ch">
@@ -796,7 +878,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 <!-- 12 FUTURE / CLOSE -->
 <section class="scene" id="future" data-title="What's next" data-shape="5">
   <div class="wrap">
-    <div class="eyebrow rv">14 — Looking ahead</div>
+    <div class="eyebrow rv">16 — Looking ahead</div>
     <h2 class="rv" style="--d:1">Where this is <em>heading</em></h2>
     <div class="fut">
       <div class="panel fu rv" style="--d:2"><h4>LLM + world model fusion</h4><p>Language for reasoning, a world model for physics. Vision-language-action models (Gemini Robotics, GR00T, π0) are the first step.</p></div>
@@ -1424,7 +1506,8 @@ const TOOLS = [
   ["Aurora", "Microsoft", "2024–26", "open", "Earth system", "Foundation model of the atmosphere: weather, air pollution, ocean waves.", "https://github.com/microsoft/aurora"],
   ["GraphCast / GenCast", "Google DeepMind", "2023–24", "open", "Earth system", "Learned weather simulators; code and weights published.", "https://github.com/google-deepmind/graphcast"],
   ["Earth-2 Studio", "NVIDIA", "2024–26", "open", "Earth system", "Open Python toolkit for AI weather and climate models.", "https://github.com/NVIDIA/earth2studio"],
-  ["Isaac Sim / Isaac Lab", "NVIDIA", "2019–26", "sim", "Simulator", "GPU-accelerated robot simulation and learning framework; open source.", "https://github.com/isaac-sim/IsaacLab"],
+  ["Isaac Lab 3.0", "NVIDIA", "2022–26", "sim", "Simulator", "GPU robot-learning framework (BSD-3): 30+ environments, Newton/MuJoCo Warp, PhysX, OVPhysX and Kamino backends, browser demos, Mimic + Cosmos data pipelines.", "https://github.com/isaac-sim/IsaacLab"],
+  ["Newton", "NVIDIA · Google DeepMind · Disney", "2025–26", "sim", "Simulator", "Open GPU physics engine built on Warp and MuJoCo Warp; Isaac Lab's fastest backend in its benchmarks.", "https://github.com/newton-physics/newton"],
   ["MuJoCo / MJX", "Google DeepMind", "2012–26", "sim", "Simulator", "Fast, accurate physics for robotics and RL. Apache 2.0, with a JAX backend.", "https://github.com/google-deepmind/mujoco"],
   ["Genesis", "Genesis-Embodied-AI", "2024", "sim", "Simulator", "Open, ultra-fast universal physics platform for robotics and embodied AI.", "https://github.com/Genesis-Embodied-AI/Genesis"],
   ["CARLA", "CVC · Intel Labs", "2017–26", "sim", "Simulator", "Open-source simulator for autonomous driving research.", "https://github.com/carla-simulator/carla"],
@@ -1996,6 +2079,89 @@ function drawMJ() {
 }
 const mjIO = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { mjLoad(); mjIO.disconnect(); } }), { threshold: .2 });
 mjIO.observe($("#mujoco"));
+
+/* ============ ISAAC LAB ============ */
+const IL_BASE = "https://isaac-sim.github.io/IsaacLab/demos/interactive/";
+const IL_DEMOS = [
+  ["anymal", "ANYmal-D walking"], ["g1", "G1 humanoid"], ["franka_lift", "Franka lift"], ["franka_drawer", "Franka drawer"],
+  ["cartpole", "Cartpole"], ["franka_cloth", "Cloth grasp"], ["dominoes", "Dominoes"], ["mpm", "Sand / snow (MPM)"]
+];
+let ilDemo = "anymal";
+function ilLoad(id) {
+  ilDemo = id; const url = `${IL_BASE}?demo=${id}`;
+  $("#ilOpen").href = url; $("#ilOpen").textContent = "open ↗";
+  $$("#ilChips .chip").forEach(c => c.classList.toggle("on", c.dataset.id === id));
+  let f = $("#ilFrame iframe");
+  if (!f) { f = document.createElement("iframe"); f.title = "Isaac Lab interactive demo"; f.allow = "fullscreen"; const cover = $("#ilCover"); if (cover) cover.replaceWith(f); else $("#ilFrame").appendChild(f); }
+  f.src = url;
+}
+$("#ilChips").innerHTML = IL_DEMOS.map(([id, n]) => `<button class="chip${id === ilDemo ? " on" : ""}" data-id="${id}">${n}</button>`).join("");
+$$("#ilChips .chip").forEach(c => c.onclick = () => ilLoad(c.dataset.id));
+$("#ilLaunch").onclick = () => ilLoad(ilDemo);
+
+// [task, newton_mjwarp, isaacsim_physx, ovphysx] from Isaac Lab's environment-performance-release.csv
+const IL_TP = [
+  ["Isaac-Cartpole", 1023698, 557215, 613721], ["Isaac-Ant", 901496, 414548, 496323], ["Isaac-Velocity-Flat-UnitreeGo2", 511088, 211585, 217959],
+  ["Isaac-Humanoid", 590924, 274588, 327778], ["Isaac-Lift-Franka", 318651, 164777, 157656], ["Isaac-Reorient-Cube-Shadow", 263690, 172633, 171429],
+  ["Isaac-Velocity-Rough-G1", 210249, 119065, 150628], ["Isaac-Velocity-Rough-AnymalD", 141587, 64011, 76517], ["Isaac-Lift-KukaAllegro-Camera*", 115888, 27962, 44591]
+];
+let ilB = 0;
+function ilBars() {
+  const max = 1.1e6;
+  $("#tpBars").innerHTML = IL_TP.map(r => `<div class="tp"><span title="${r[0]}">${r[0].replace("Isaac-", "")}</span><div class="tr"><i data-w="${r[1 + ilB] / max * 100}"></i></div><em>${r[1 + ilB] >= 1e6 ? (r[1 + ilB] / 1e6).toFixed(2) + "M" : Math.round(r[1 + ilB] / 1e3) + "k"}</em></div>`).join("");
+  requestAnimationFrame(() => $$("#tpBars i").forEach(i => i.style.width = i.dataset.w + "%"));
+}
+$$("#tpCtrl .chip").forEach(c => c.onclick = () => { ilB = +c.dataset.b; $$("#tpCtrl .chip").forEach(x => x.classList.toggle("on", x === c)); ilBars(); });
+let ilT0 = null;
+new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { ilBars(); if (ilT0 === null) ilT0 = performance.now(); } }), { threshold: .25 }).observe($("#isaaclab"));
+setInterval(() => { if (ilT0 === null) return; const h = (performance.now() - ilT0) / 1000 * 141587 * .02 / 3600; $("#ilXp").textContent = h < 48 ? `${h.toFixed(1)} robot-hours` : `${(h / 24).toFixed(1)} robot-days`; }, 250);
+
+const flow = (boxes, color) => {
+  const W = 640, bw = 132, gap = (W - boxes.length * bw) / (boxes.length - 1);
+  return `<svg class="flow-svg" viewBox="0 0 ${W} 92">${boxes.map(([t, s], i) => { const x = i * (bw + gap);
+    return `<rect class="bx" x="${x}" y="14" width="${bw}" height="58" rx="12" stroke="${i === boxes.length - 1 ? color : "rgba(255,255,255,.2)"}"/><text class="bt" x="${x + bw / 2}" y="40" text-anchor="middle">${t}</text><text x="${x + bw / 2}" y="58" text-anchor="middle">${s}</text>` +
+      (i < boxes.length - 1 ? `<path d="M${x + bw + 4} 43 H${x + bw + gap - 6}" stroke="${color}" stroke-width="1.6" class="flow" marker-end="url(#ah)"/>` : ""); }).join("")}</svg>`;
+};
+const IL_PATHS = [
+  { t: "Data factory → learned world model", s: "our example script", title: "examples/isaaclab_world_model.py",
+    vis: () => flow([["Isaac Lab", "4,096 parallel envs"], ["(s, a, s′)", "transitions"], ["World model", "MLP Δs = f(s,a)"], ["Plan / dream", "MPPI · Dreamer"]], "#5ef2ff"),
+    code: `# inside an Isaac Lab 3.0 checkout (NVIDIA GPU required)
+uv run python /path/to/examples/isaaclab_world_model.py \\
+  --task Isaac-Cartpole --num_envs 4096 --steps 300
+# 1. steps 4,096 envs with smoothed random actions
+# 2. saves ~1.2M (obs, action, next_obs) transitions
+# 3. trains an MLP world model and reports 1-step and
+#    10-step open-loop error vs. the simulator`,
+    why: "<b>The scene 10 recipe at GPU scale.</b> Isaac Lab produces in seconds the transitions the MuJoCo demo collected in a minute. Written against the Isaac Lab 3.0 API (the same calls as its random_agent). I haven't run it here, because it needs an NVIDIA GPU." },
+  { t: "Mimic + Cosmos Transfer", s: "official Isaac Lab workflow", title: "Isaac Lab Mimic → Cosmos Transfer1",
+    vis: () => flow([["10 human demos", "teleoperated"], ["Isaac Lab Mimic", "→ 1,000 demos"], ["Cosmos Transfer", "world model"], ["Visuomotor policy", "varied visuals"]], "#9b7bff") +
+      `<div class="gifs"><figure><img loading="lazy" src="https://download.isaacsim.omniverse.nvidia.com/isaaclab/images/cosmos_inputs.gif" alt="Isaac Lab RGB, depth and segmentation inputs"><figcaption>Isaac Lab renders RGB + depth + segmentation</figcaption></figure><figure><img loading="lazy" src="https://download.isaacsim.omniverse.nvidia.com/isaaclab/images/cosmos_output.gif" alt="Cosmos Transfer1 augmented output"><figcaption>Cosmos Transfer1 re-imagines the scene</figcaption></figure></div>`,
+    code: `uv run --extra isaacsim,mimic python scripts/imitation_learning/isaaclab_mimic/generate_dataset.py \\
+  --device cpu --num_envs 10 --generation_num_trials 1000 \\
+  --input_file ./datasets/annotated_dataset.hdf5 --output_file ./datasets/mimic_dataset_1k.hdf5 \\
+  --task Isaac-Stack-Cube-Franka-IK-Rel-Visuomotor-Cosmos-Mimic-v0
+uv run --extra mimic python scripts/tools/hdf5_to_mp4.py \\
+  --input_file datasets/mimic_dataset_1k.hdf5 --output_dir datasets/mimic_dataset_1k_mp4
+# then run Cosmos Transfer1 on the RGB/depth/segmentation videos`,
+    why: "<b>Simulator + generative world model.</b> Isaac Lab supplies exact geometry and physics, and Cosmos supplies realistic appearance: new lighting, textures and backgrounds. The policy sees far more visual variety than the simulator alone could render. Commands are from Isaac Lab's Augmented Imitation Learning guide. Cosmos Transfer1 needs an Ampere or Hopper GPU." },
+  { t: "Model-free RL in the simulator", s: "the baseline", title: "isaaclab train",
+    vis: () => flow([["Isaac Lab", "8,192 envs on GPU"], ["PPO (RSL RL)", "trial and error"], ["Policy", "no internal model"], ["Real robot", "sim-to-real"]], "#ffb547"),
+    code: `uv run isaaclab list_envs
+uv run isaaclab train --rl_library rsl_rl --task Isaac-Velocity-Rough-AnymalD
+uv run isaaclab play  --rl_library rsl_rl --task Isaac-Velocity-Rough-AnymalD --checkpoint latest
+# or the quick one
+uv run --extra sb3 isaaclab train --rl_library sb3 --task Isaac-Cartpole --num_envs 64`,
+    why: "<b>Here the simulator <i>is</i> the model.</b> PPO never learns to predict anything: it just tries billions of steps in the engineered world. That works brilliantly when you can simulate the task. World models matter where you can't, such as raw camera video, deformables and the real world." }
+];
+let ilP = 0;
+IL_PATHS.forEach((p, i) => { const b = document.createElement("button"); b.innerHTML = `${p.t}<small>${p.s}</small>`; b.onclick = () => ilPath(i); $("#ilPaths").appendChild(b); });
+function ilPath(i) {
+  ilP = i; const p = IL_PATHS[i];
+  $$("#ilPaths button").forEach((b, j) => b.classList.toggle("on", i === j));
+  $("#ilCodeTitle").textContent = p.title; $("#ilVis").innerHTML = p.vis(); $("#ilCode").innerHTML = hl(p.code); $("#ilWhy").innerHTML = p.why;
+}
+ilPath(0);
+$("#ilCopy").onclick = () => { navigator.clipboard?.writeText(IL_PATHS[ilP].code).then(() => { $("#ilCopy").textContent = "copied ✓"; setTimeout(() => $("#ilCopy").textContent = "copy", 1400); }).catch(() => {}); };
 
 /* ============ MAIN LOOP for scene canvases ============ */
 function loop(t) {
