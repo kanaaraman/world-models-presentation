@@ -358,11 +358,44 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 .gifs img{width:100%;border-radius:10px;border:1px solid var(--line);display:block;background:#0b0d16;aspect-ratio:16/9;object-fit:cover}
 .gifs figcaption{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:4px}
 
+/* SIM-TO-REAL */
+.s2r-steps{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:24px 0 12px;position:relative}
+.s2r-steps button{text-align:left;padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--panel);transition:.25s;position:relative;color:var(--muted);font-size:14px}
+.s2r-steps button b{display:block;font-family:var(--mono);font-size:11px;color:var(--dim);font-weight:400;margin-bottom:4px}
+.s2r-steps button.on{border-color:var(--cyan);color:var(--ink);background:rgba(94,242,255,.07);transform:translateY(-3px)}
+.s2r-steps button.on b{color:var(--cyan)}
+.s2r-steps button.done b{color:var(--green)}
+.s2r-steps button:not(:last-child)::after{content:"→";position:absolute;right:-11px;top:50%;transform:translateY(-50%);color:var(--dim);font-size:12px}
+.s2r-detail{display:grid;grid-template-columns:1fr 1.2fr;gap:0;overflow:hidden;margin-bottom:22px}
+.s2r-detail > div{padding:18px 20px}
+.s2r-detail > div + div{border-left:1px solid var(--line)}
+.s2r-detail h4{font-size:19px;font-weight:500;margin-bottom:6px}
+.s2r-detail p{font-size:13.5px;color:var(--muted)}
+.s2r-detail ul{list-style:none;display:grid;gap:5px;font-size:13px;color:var(--muted);margin-top:8px}
+.s2r-detail li::before{content:"› ";color:var(--cyan)}
+.s2r-detail pre{font-family:var(--mono);font-size:12px;line-height:1.65;color:#cfd3e6;white-space:pre-wrap;word-break:break-word}
+.s2r-detail pre .c{color:var(--dim)}
+.lab{display:grid;grid-template-columns:1.25fr 1fr;gap:18px}
+.lab-c{position:relative;min-height:340px;overflow:hidden;align-self:start;aspect-ratio:16/10}
+#labC{position:absolute;inset:0;width:100%;height:100%}
+.rules{padding:18px;display:flex;flex-direction:column;gap:10px}
+.rule{display:grid;grid-template-columns:14px 1fr auto;gap:10px;align-items:start;padding:11px 12px;border-radius:12px;border:1px solid var(--line);font-size:13px;color:var(--muted);transition:.25s}
+.rule .led{width:10px;height:10px;border-radius:50%;margin-top:4px;background:var(--green);box-shadow:0 0 10px var(--green)}
+.rule.bad{border-color:rgba(255,92,154,.45);background:rgba(255,92,154,.05)}
+.rule.bad .led{background:var(--pink);box-shadow:0 0 10px var(--pink)}
+.rule b{color:var(--ink);font-weight:500;display:block}
+.rule .chip{cursor:pointer}
+.rule.fix{border-color:rgba(82,242,161,.45);background:rgba(82,242,161,.05)}
+
 /* responsive */
 @media (max-width:1000px){
   .def-grid,.sand,.ap-body,.state-grid,.uc,.gs,.ch,.rq,.rw{grid-template-columns:1fr}
   .tp{grid-template-columns:110px 1fr 60px}
   .il-grid{grid-template-columns:1fr}
+  .s2r-steps{grid-template-columns:1fr 1fr}
+  .s2r-steps button::after{display:none}
+  .s2r-detail,.lab{grid-template-columns:1fr}
+  .s2r-detail > div + div{border-left:0;border-top:1px solid var(--line)}
   .rw-canvas{align-self:auto}
   .why-grid{grid-template-columns:1fr 1fr}
   .kpis{grid-template-columns:1fr 1fr}
@@ -399,7 +432,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 <div class="grain"></div>
 <div id="progress"></div>
 <nav id="dots" aria-label="Scenes"></nav>
-<div id="counter"><b>01</b> / 18</div>
+<div id="counter"><b>01</b> / 19</div>
 <div id="hint"><kbd>↑</kbd> <kbd>↓</kbd> or scroll · <kbd>D</kbd> dream mode</div>
 
 <main>
@@ -412,8 +445,8 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
     <p class="lede rv" style="--d:3">AI that doesn't just <b>describe</b> the world, it <b>simulates</b> it. It can predict what happens next, imagine "what if", and plan before it acts.</p>
     <div class="typed rv" style="--d:4" id="typed"></div>
     <div class="hero-meta rv" style="--d:5">
-      <div><b>18 scenes</b>Scroll or use arrow keys</div>
-      <div><b>8 live demos</b>Drag, click, break things</div>
+      <div><b>19 scenes</b>Scroll or use arrow keys</div>
+      <div><b>9 live demos</b>Drag, click, break things</div>
       <div><b>40+ systems</b>Open and closed, all mapped</div>
     </div>
   </div>
@@ -819,10 +852,32 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
   </div>
 </section>
 
+<!-- 8g SIM-TO-REAL -->
+<section class="scene" id="sim2real" data-title="Sim-to-real" data-shape="3">
+  <div class="wrap">
+    <div class="eyebrow rv">13 — Sim-to-real with Isaac Lab</div>
+    <h2 class="rv" style="--d:1">Train in the simulator, <em>run</em> on the real robot</h2>
+    <p class="lede rv" style="--d:2">Policies trained only in Isaac Lab already run on real UR10e and Flexiv Rizon 4s arms, with no real-world training data. Five steps get you there: <b>train</b>, <b>check in sim</b>, <b>export</b>, <b>deploy</b> and <b>test on hardware</b>. It only works if you respect three consistency rules. Click a step, then break the rules in the lab below.</p>
+    <div class="s2r-steps rv" style="--d:3" id="s2rSteps"></div>
+    <div class="panel s2r-detail rv" style="--d:4" id="s2rDetail"></div>
+    <div class="lab rv" style="--d:5">
+      <div class="panel lab-c"><canvas id="labC"></canvas></div>
+      <div class="panel rules">
+        <h3 style="font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:400">Consistency lab · same policy, sim vs real</h3>
+        <div class="rule" id="rIn"><span class="led"></span><div><b>1 · Same inputs</b>The policy sees only what real sensors provide, with realistic noise.</div><button class="chip" data-r="in">break</button></div>
+        <div class="rule" id="rResp"><span class="led"></span><div><b>2 · Same response</b>The real motors react like the simulated ones, or the policy was trained on randomized dynamics.</div><button class="chip" data-r="resp">break</button></div>
+        <div class="rule" id="rOut"><span class="led"></span><div><b>3 · Same outputs</b>Joint order, scaling and clipping on the robot match training exactly.</div><button class="chip" data-r="out">break</button></div>
+        <div class="rule" id="rDR" style="grid-template-columns:14px 1fr auto"><span class="led" style="background:var(--violet);box-shadow:0 0 10px var(--violet)"></span><div><b>Fix: domain randomization</b>Retrain with randomized motor lag, delay and friction. The policy learns to be robust instead of exact.</div><button class="chip" data-r="dr">off</button></div>
+        <div class="log" id="labLog">All three rules hold, so the real arm tracks the target just like the simulated one.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- 9 LANDSCAPE -->
 <section class="scene" id="software" data-title="Software map" data-shape="3">
   <div class="wrap">
-    <div class="eyebrow rv">13 — The landscape</div>
+    <div class="eyebrow rv">14 — The landscape</div>
     <h2 class="rv" style="--d:1">Every tool you can <em>use</em> today</h2>
     <p class="lede rv" style="--d:2">Filter by access level or category, or search. A green badge means fully open source, cyan means open weights, pink means closed or API-only, and amber marks simulators and engines.</p>
     <div class="ls-ctrl rv" style="--d:3">
@@ -843,7 +898,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 <!-- 10 GET STARTED -->
 <section class="scene" id="start" data-title="Get started" data-shape="4">
   <div class="wrap">
-    <div class="eyebrow rv">14 — Open source, hands-on</div>
+    <div class="eyebrow rv">15 — Open source, hands-on</div>
     <h2 class="rv" style="--d:1">Pick a path, <em>run</em> something tonight</h2>
     <div class="gs">
       <div class="panel paths rv" style="--d:2" id="paths"><h3>I want to…</h3></div>
@@ -859,7 +914,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 <!-- 11 CHALLENGES -->
 <section class="scene" id="challenges" data-title="Challenges" data-shape="2">
   <div class="wrap">
-    <div class="eyebrow rv">15 — The hard parts</div>
+    <div class="eyebrow rv">16 — The hard parts</div>
     <h2 class="rv" style="--d:1">Small errors, <em>compounded</em></h2>
     <p class="lede rv" style="--d:2">A world model feeds its own predictions back in as input. A 1% error per step doesn't stay at 1%. Move the slider, then switch on observations to see why closed-loop grounding matters.</p>
     <div class="ch">
@@ -878,7 +933,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 <!-- 12 FUTURE / CLOSE -->
 <section class="scene" id="future" data-title="What's next" data-shape="5">
   <div class="wrap">
-    <div class="eyebrow rv">16 — Looking ahead</div>
+    <div class="eyebrow rv">17 — Looking ahead</div>
     <h2 class="rv" style="--d:1">Where this is <em>heading</em></h2>
     <div class="fut">
       <div class="panel fu rv" style="--d:2"><h4>LLM + world model fusion</h4><p>Language for reasoning, a world model for physics. Vision-language-action models (Gemini Robotics, GR00T, π0) are the first step.</p></div>
@@ -2163,6 +2218,125 @@ function ilPath(i) {
 ilPath(0);
 $("#ilCopy").onclick = () => { navigator.clipboard?.writeText(IL_PATHS[ilP].code).then(() => { $("#ilCopy").textContent = "copied ✓"; setTimeout(() => $("#ilCopy").textContent = "copy", 1400); }).catch(() => {}); };
 
+/* ============ SIM-TO-REAL ============ */
+const S2R = [
+  { n: "Train", s: "GPU · thousands of envs", h: "Train with real-robot inputs only",
+    p: "Train with PPO across thousands of parallel arms. The task config is where sim-to-real is won or lost.",
+    li: ["Observations: joint pos/vel plus the target, nothing privileged", "Actions: small joint-position deltas, like the real controller accepts", "Domain randomization: masses, friction, gains, delays"],
+    code: `<span class="c"># UR10e reach task from Isaac Lab's sim-to-real guide</span>
+uv run isaaclab train --rl_library rsl_rl \\
+  --task IsaacContrib-Deploy-Reach-UR10e-ROS-Inference --num_envs 4096
+<span class="c"># Flexiv Rizon 4s: ...-Deploy-Reach-Rizon4s-ROS-Inference</span>` },
+  { n: "Check in sim", s: "play · record video", h: "Watch it before you trust it",
+    p: "Replay the checkpoint and look for jitter, joint-limit hugging and exploits of the simulator. Anything that looks odd in sim will be worse on the robot.",
+    li: ["Smooth actions, no chattering", "Stays well inside joint and speed limits", "Still works with the randomization at its extremes"],
+    code: `uv run --extra video isaaclab play --rl_library rsl_rl \\
+  --task IsaacContrib-Deploy-Reach-UR10e-ROS-Inference --checkpoint latest --video` },
+  { n: "Export", s: "LEAPP → .onnx", h: "Package the policy with its I/O",
+    p: "Isaac Lab 3.0's LEAPP exports the network (.onnx by default) together with its input/output processing, so the robot doesn't need Isaac Lab, and the scaling can't drift away from training (rule 3).",
+    li: ["Model plus observation and action processing in one artifact", "Same physics preset in train, export and deploy", "Works with RSL RL, SKRL, RL Games and SB3 policies"],
+    code: `uv run --extra leapp isaaclab leapp export --rl_library rsl_rl \\
+  --task IsaacContrib-Deploy-Reach-UR10e-ROS-Inference physics=newton_mjwarp
+<span class="c"># check the exported artifact back in simulation first</span>
+uv run --extra leapp isaaclab leapp deploy \\
+  --task IsaacContrib-Deploy-Reach-UR10e-ROS-Inference` },
+  { n: "Deploy", s: "Isaac ROS · LeRobot", h: "Run it in a loop on the robot",
+    p: "A small inference node on the robot's computer (often a Jetson) reads the sensors, builds the same observation vector, runs the .onnx at the training control rate, and sends the outputs to the controller.",
+    li: ["UR10e / Rizon 4s: Isaac ROS manipulation workflow", "SO-101 arm: LeRobot (NVIDIA/so101-typing-task)", "Camera tasks: add perception, e.g. FoundationPose + RealSense"],
+    code: `<span class="c"># robot side, pseudo-loop at the training rate</span>
+obs = [joint_pos, joint_vel, target_pose]   <span class="c"># same order and units as training</span>
+action = onnx_session.run(obs)              <span class="c"># exported by LEAPP</span>
+cmd = joint_pos + scale * clip(action)      <span class="c"># same post-processing</span>
+robot.send_joint_position(cmd)` },
+  { n: "Test on hardware", s: "safely · iterate", h: "Start slow, compare, iterate",
+    p: "Isaac Lab's debugging tip: put the real robot in the same starting state as in sim and compare the two responses. That tells you whether the gap is in the inputs (rule 1) or the dynamics (rule 2).",
+    li: ["E-stop within reach, reduced speed and torque limits", "Log real obs/actions next to sim rollouts", "Measure real lag and friction, randomize around them, retrain"],
+    code: `<span class="c"># the loop that closes the gap</span>
+measure real robot  →  update sim parameters / randomization ranges
+        ↑                                   ↓
+ test on hardware   ←   retrain + export (same task, same preset)` }
+];
+let s2rI = 0, s2rAuto = true;
+$("#s2rSteps").innerHTML = S2R.map((s, i) => `<button data-i="${i}"><b>0${i + 1} · ${s.s}</b>${s.n}</button>`).join("");
+function s2rSet(i) {
+  s2rI = i; const s = S2R[i];
+  $$("#s2rSteps button").forEach((b, j) => { b.classList.toggle("on", j === i); b.classList.toggle("done", j < i); });
+  $("#s2rDetail").innerHTML = `<div><h4>${s.h}</h4><p>${s.p}</p><ul>${s.li.map(x => `<li>${x}</li>`).join("")}</ul></div><div><pre>${s.code}</pre></div>`;
+}
+$$("#s2rSteps button").forEach(b => b.onclick = () => { s2rAuto = false; s2rSet(+b.dataset.i); });
+s2rSet(0);
+setInterval(() => { if (s2rAuto && scenes[curScene].id === "sim2real") s2rSet((s2rI + 1) % S2R.length); }, 5000);
+
+// Consistency lab: one policy, a simulated arm and a "real" arm
+const LAB = { brk: { in: false, resp: false, out: false }, dr: false, t: 0, tgtI: 0 };
+const L1 = .55, L2 = .45, DT = .02;
+const LAB_TGTS = [[.55, .55], [-.45, .6], [.2, .85], [-.6, .25], [.65, .2]];
+function labArm(real) { return { real, q: [1.2, -1.2], v: [0, 0], buf: [], trail: [], err: [] }; }
+LAB.arms = [labArm(false), labArm(true)];
+function ik([x, y]) {
+  const d = Math.min(.999, (x * x + y * y - L1 * L1 - L2 * L2) / (2 * L1 * L2)), q2 = -Math.acos(d);
+  return [Math.atan2(y, x) - Math.atan2(L2 * Math.sin(q2), L1 + L2 * Math.cos(q2)), q2];
+}
+const fk = q => [L1 * Math.cos(q[0]) + L2 * Math.cos(q[0] + q[1]), L1 * Math.sin(q[0]) + L2 * Math.sin(q[0] + q[1])];
+function labStep(arm, tgt) {
+  const real = arm.real, b = LAB.brk;
+  // rule 1: real encoders carry an offset the policy never saw in training
+  const qObs = real && b.in ? [arm.q[0] + .3, arm.q[1]] : arm.q.slice();
+  // the policy outputs joint velocities: snappy when trained on nominal sim, gentler with domain randomization
+  const K = LAB.dr ? 3 : 9, VMAX = 3, qs = ik(tgt);
+  let u = [0, 1].map(j => VMAX * Math.max(-1, Math.min(1, K * (qs[j] - qObs[j]) / VMAX)));
+  // rule 3: the robot code orders the joints differently from training
+  if (real && b.out) u = [u[1], u[0]];
+  // rule 2: real motors lag and respond late (120 ms instead of 20 ms)
+  const tau = real ? (b.resp ? .15 : .04) : .03, delay = real ? (b.resp ? 6 : 1) : 0;
+  arm.buf.push(u); const c = arm.buf.length > delay ? arm.buf.shift() : [0, 0];
+  arm.v = arm.v.map((v, j) => v + (c[j] - v) * Math.min(1, DT / tau));
+  arm.q = arm.q.map((q, j) => q + arm.v[j] * DT);
+  const ee = fk(arm.q); arm.trail.push(ee); if (arm.trail.length > 90) arm.trail.shift();
+  // score the settled part only: skip the first second after each target jump
+  if (LAB.t % 150 > 90) { arm.err.push(Math.hypot(ee[0] - tgt[0], ee[1] - tgt[1])); if (arm.err.length > 200) arm.err.shift(); }
+}
+function labUI() {
+  const b = LAB.brk;
+  [["rIn", b.in], ["rResp", b.resp], ["rOut", b.out]].forEach(([id, v]) => { $("#" + id).classList.toggle("bad", v); $("#" + id + " .chip").textContent = v ? "fix" : "break"; });
+  $("#rDR").classList.toggle("fix", LAB.dr); $("#rDR .chip").textContent = LAB.dr ? "on" : "off";
+  const msg = [];
+  if (b.in) msg.push("Inputs: a 0.3 rad encoder offset means the policy believes it's somewhere else, so it settles confidently in the wrong place. Randomization can't fix a wrong observation; calibrate it or add the offset as noise in training.");
+  if (b.resp) msg.push(LAB.dr ? "Response: the motors lag 120 ms, but the domain-randomized policy is gentle enough to stay stable." : "Response: the real motors lag about 120 ms. The policy was tuned on snappy simulated motors, so it overshoots and oscillates. Turn on domain randomization.");
+  if (b.out) msg.push("Outputs: the robot code lists the joints in a different order from training, so the shoulder gets the elbow's command. Randomization can't help here. Export with LEAPP so the joint order and scaling travel with the model.");
+  $("#labLog").textContent = msg.join(" ") || (LAB.dr ? "All rules hold, and with domain randomization the policy is slightly slower but robust." : "All three rules hold, so the real arm tracks the target just like the simulated one.");
+}
+$$(".rule .chip").forEach(c => c.onclick = () => { const r = c.dataset.r; if (r === "dr") LAB.dr = !LAB.dr; else LAB.brk[r] = !LAB.brk[r]; labUI(); });
+labUI();
+function drawLab() {
+  const { ctx, w, h } = fitCanvas($("#labC")); ctx.clearRect(0, 0, w, h);
+  LAB.t += 1; if (LAB.t % 150 === 0) LAB.tgtI = (LAB.tgtI + 1) % LAB_TGTS.length;
+  const tgt = LAB_TGTS[LAB.tgtI];
+  LAB.arms.forEach(a => labStep(a, tgt));
+  const half = w / 2, sc = Math.min(half * .44, (h - 90) * .9);
+  LAB.arms.forEach((arm, k) => {
+    const ox = half * k + half / 2, oy = Math.min(h - 30, 60 + sc * 1.05), X = x => ox + x * sc, Y = y => oy - y * sc;
+    ctx.fillStyle = "rgba(255,255,255,.02)"; ctx.fillRect(half * k + 6, 6, half - 12, h - 12);
+    ctx.font = "11px JetBrains Mono, monospace"; ctx.fillStyle = k ? "#ffb547" : "#5ef2ff";
+    ctx.fillText(k ? "REAL ROBOT" : "SIMULATION (Isaac Lab)", half * k + 16, 24);
+    const e = arm.err.reduce((s, v) => s + v, 0) / Math.max(1, arm.err.length);
+    ctx.fillStyle = e > .08 ? "#ff5c9a" : "#52f2a1"; ctx.fillText(`tracking error ${(e * 100).toFixed(1)} cm`, half * k + 16, 42);
+    ctx.strokeStyle = "rgba(255,255,255,.08)"; ctx.beginPath(); ctx.arc(X(0), Y(0), (L1 + L2) * sc, Math.PI, 2 * Math.PI); ctx.stroke();
+    ctx.strokeStyle = "#ff5c9a"; ctx.lineWidth = 1.5; const [tx, ty] = [X(tgt[0]), Y(tgt[1])];
+    ctx.beginPath(); ctx.arc(tx, ty, 8, 0, 7); ctx.moveTo(tx - 12, ty); ctx.lineTo(tx + 12, ty); ctx.moveTo(tx, ty - 12); ctx.lineTo(tx, ty + 12); ctx.stroke();
+    ctx.strokeStyle = k ? "rgba(255,181,71,.35)" : "rgba(94,242,255,.35)"; ctx.lineWidth = 1.5; ctx.beginPath();
+    arm.trail.forEach(([x, y], i) => i ? ctx.lineTo(X(x), Y(y)) : ctx.moveTo(X(x), Y(y))); ctx.stroke();
+    const p1 = [L1 * Math.cos(arm.q[0]), L1 * Math.sin(arm.q[0])], p2 = fk(arm.q);
+    ctx.lineCap = "round"; ctx.strokeStyle = "#c9cde0"; ctx.lineWidth = Math.max(6, sc * .07);
+    ctx.beginPath(); ctx.moveTo(X(0), Y(0)); ctx.lineTo(X(p1[0]), Y(p1[1])); ctx.lineTo(X(p2[0]), Y(p2[1])); ctx.stroke(); ctx.lineCap = "butt";
+    ctx.fillStyle = "#2b3036"; [[0, 0], p1].forEach(([x, y]) => { ctx.beginPath(); ctx.arc(X(x), Y(y), 5, 0, 7); ctx.fill(); });
+    ctx.fillStyle = k ? "#ffb547" : "#5ef2ff"; ctx.beginPath(); ctx.arc(X(p2[0]), Y(p2[1]), 6, 0, 7); ctx.fill();
+    ctx.fillStyle = "#3a4552"; ctx.fillRect(X(0) - 26, Y(0), 52, 10);
+  });
+  ctx.strokeStyle = "rgba(255,255,255,.08)"; ctx.beginPath(); ctx.moveTo(half, 10); ctx.lineTo(half, h - 10); ctx.stroke();
+  ctx.fillStyle = "#5b6178"; ctx.font = "10px JetBrains Mono, monospace"; ctx.fillText(`same policy · ${LAB.dr ? "trained with domain randomization" : "trained on nominal sim"}`, 16, h - 10);
+}
+
 /* ============ MAIN LOOP for scene canvases ============ */
 function loop(t) {
   const id = scenes[curScene].id;
@@ -2170,6 +2344,7 @@ function loop(t) {
   if (id === "schools") drawAp(t);
   if (id === "ridgew") drawRW(t);
   if (id === "mujoco") drawMJ();
+  if (id === "sim2real") drawLab();
   if (id === "challenges") drawDrift(t);
   requestAnimationFrame(loop);
 }

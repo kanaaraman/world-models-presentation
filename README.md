@@ -21,6 +21,7 @@ An interactive, scroll-driven presentation about AI **world models**. It covers 
 | 08d | MuJoCo demo | **Real MuJoCo 3.14 (WebAssembly)** is the "reality". The agent explores, fits a world model Δs = f(s, a), and swings up a cart-pole with MPPI planning entirely in its imagination |
 | 08e | Isaac Lab | NVIDIA Isaac Lab 3.0's **official browser demos** embedded live (ANYmal-D, G1, Franka lift/drawer/cloth, cartpole, dominoes, MPM), plus throughput bars from Isaac Lab's published benchmarks (up to ~1M env-steps/s) and a live "robot-hours simulated" counter |
 | 08f | Isaac Lab × world models | Three pipelines: Isaac Lab as a data factory for a learned world model ([`examples/isaaclab_world_model.py`](examples/isaaclab_world_model.py)), Isaac Lab Mimic → Cosmos Transfer, and model-free RL as the baseline |
+| 08g | Sim-to-real | Train → check in sim → export (LEAPP .onnx) → deploy (Isaac ROS / LeRobot) → test on hardware, with Isaac Lab 3.0 commands, plus a **consistency lab**: break input, response or output consistency and watch a "real" arm diverge from the simulated one. Domain randomization fixes the dynamics gap but not wrong inputs or outputs |
 | 09 | Software map | Searchable, filterable catalog of 37 tools (open/closed/simulator) |
 | 10 | Get started | Six hands-on paths with copyable commands |
 | 11 | Challenges | Compounding-error simulator plus open problems |
