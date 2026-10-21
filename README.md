@@ -78,7 +78,7 @@ Tips:
 | 12 | Isaac Lab | Isaac Lab 3.0's **official browser demos** embedded live (ANYmal-D, G1, Franka lift/drawer/cloth, cartpole, dominoes, MPM), plus throughput bars from Isaac Lab's published benchmarks (up to ~1M env-steps/s) |
 | 13 | Isaac Lab × world models | Three pipelines: Isaac Lab as a data factory for a learned world model, Isaac Lab Mimic → Cosmos Transfer, and model-free RL as the baseline |
 | 14 | Sim-to-real | Train → check in sim → export (LEAPP .onnx) → deploy (Isaac ROS / LeRobot) → test on hardware, plus a **consistency lab**: break input, response or output consistency and watch a "real" arm diverge from the simulated one |
-| 15 | Humanoid in a furnished room | **Unitree G1 humanoid** walking with Unitree's own pretrained LSTM policy (run in JavaScript at 50 Hz) through a living room in **real MuJoCo physics**, rendered with three.js. Walk it with WASD / arrows / the on-screen pad and push the table, chairs, boxes and ball. About once a second it copies the world (controller memory included) and imagines 1 s ahead (violet ghosts), then scores its prediction. Toggle an *imperfect world model* to see predictions drift. Model: [`examples/g1_room.xml`](examples/g1_room.xml) |
+| 15 | Humanoid in a furnished room | **Unitree G1 humanoid** walking with Unitree's own pretrained LSTM policy (run in JavaScript at 50 Hz) through a living room in **real MuJoCo physics**, rendered with three.js. Walk it with WASD / arrows / the on-screen pad, push the table, chairs, boxes and ball, and press **E** to pick up / put down a small box, the ball or a book. The grasp is a physics spring, because this 12-DoF model has no arm motors, but the walking policy really carries the weight. About once a second it copies the world (controller memory included) and imagines 1 s ahead (violet ghosts), then scores its prediction. Toggle an *imperfect world model* to see predictions drift. Model: [`examples/g1_room.xml`](examples/g1_room.xml) |
 | 16 | Real room → sim | Scan a real space with NVIDIA NuRec, train in its digital twin with Isaac Lab + COMPASS, deploy in the same room. NVIDIA's living-room sample scans, plus an Isaac Lab furniture-scene config sketch |
 | 17 | Software map | Searchable, filterable catalog of 38 tools (open source, open weights, closed, simulators) |
 | 18 | Get started | Six hands-on paths with copyable commands |
@@ -98,6 +98,20 @@ uv run --with mujoco --with numpy python g1_room_walk.py          # scripted wal
 ```
 
 There's also a simpler wheeled-robot version of the room, [`examples/furnished_room.xml`](examples/furnished_room.xml). Open it in the viewer with `uv run --with mujoco python -m mujoco.viewer` and drag the file in.
+
+### Train the G1 inside MuJoCo
+
+Three levels, from laptop to GPU cluster:
+
+1. **CPU, about 10 minutes: a new skill on top of the walking policy.** [`examples/train_g1_room_nav.py`](examples/train_g1_room_nav.py) is hierarchical RL. Unitree's walking policy stays frozen, and PPO (Stable-Baselines3) learns a high-level policy at 5 Hz that picks walk/turn commands to reach random goals in the room without bumping into furniture. It observes goal direction and 8 lidar-style rays.
+   ```bash
+   cd examples
+   uv run --python 3.12 --with mujoco --with numpy --with gymnasium --with stable-baselines3 python train_g1_room_nav.py --train 150000
+   uv run --python 3.12 --with mujoco --with numpy --with gymnasium --with stable-baselines3 python train_g1_room_nav.py --eval   # random vs hand-written vs trained
+   uv run --python 3.12 --with mujoco --with numpy --with gymnasium --with stable-baselines3 python train_g1_room_nav.py --view   # watch it (green disc = goal)
+   ```
+2. **GPU: learn walking itself from scratch.** [MuJoCo Playground](https://github.com/google-deepmind/mujoco_playground) (Google DeepMind, Apache-2.0) trains thousands of G1s in parallel with MJX: `pip install playground "jax[cuda12]"`, then `python learning/train_jax_ppo.py --env_name=G1JoystickFlatTerrain` (or `G1JoystickRoughTerrain`).
+3. **Isaac Lab:** GPU-scale training and the sim-to-real workflow (scenes 12 to 14).
 
 ### MuJoCo: learn a world model and plan with it (CPU, about 1 minute)
 

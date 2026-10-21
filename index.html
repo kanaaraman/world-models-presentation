@@ -902,11 +902,11 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
       <div class="panel" id="roomWrap" tabindex="0" aria-label="Furnished room simulation with a Unitree G1. Focus and walk with W A S D or arrow keys.">
         <canvas id="roomC"></canvas>
         <div class="room-hud"><span id="roomHud">loading MuJoCo, three.js and the Unitree G1…</span><span id="roomPred"></span></div>
-        <div class="room-focus" id="roomFocus"><span>Click here, then walk with <kbd>W</kbd> forward · <kbd>A</kbd> <kbd>D</kbd> turn · <kbd>S</kbd> back · drag to orbit · scroll to zoom</span></div>
+        <div class="room-focus" id="roomFocus"><span>Click here, then walk with <kbd>W</kbd> forward · <kbd>A</kbd> <kbd>D</kbd> turn · <kbd>S</kbd> back · <kbd>E</kbd> pick up / put down · drag to orbit · scroll to zoom</span></div>
       </div>
       <div class="panel sand-ctrl">
         <div class="pad" id="roomPad">
-          <span></span><button data-k="f" aria-label="walk forward">▲</button><span></span>
+          <span></span><button data-k="f" aria-label="walk forward">▲</button><button id="roomGrab" aria-label="pick up or put down (E)" title="pick up / put down (E)">✋</button>
           <button data-k="l" aria-label="turn left">↶</button><button data-k="b" aria-label="walk backward">▼</button><button data-k="r" aria-label="turn right">↷</button>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -921,8 +921,34 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
           <div class="stat"><small>Objects moved</small><b id="roomMoved">0</b></div>
           <div class="stat"><small>Contacts</small><b id="roomCon">—</b></div>
         </div>
-        <div class="log" id="roomLog">Try it: walk into the box stack (it's ahead and to the right), kick the ball, then turn on the imperfect model and do it again.</div>
+        <div class="log" id="roomLog">Try it: walk to the ball, press E to pick it up, carry it to the sofa and press E again. Or knock over the box stack and carry the small box away.</div>
         <div class="log" style="font-size:10.5px">Robot model and walking policy: <a href="https://github.com/unitreerobotics/unitree_rl_gym" target="_blank" rel="noopener">unitree_rl_gym</a> (BSD-3, Unitree Robotics), with meshes simplified for the web. Python version with the MuJoCo viewer: <a href="examples/g1_room_walk.py" target="_blank" rel="noopener">examples/g1_room_walk.py</a></div>
+      </div>
+    </div>
+    <div class="panel s2r-detail rv" style="--d:4;margin-top:18px">
+      <div>
+        <h4>What this demo is for</h4>
+        <ul>
+          <li><b style="color:var(--ink)">Policy ≠ world model.</b> Unitree's walking policy is a reflex: it maps sensors to motor targets and predicts nothing. The violet imagination is the world model: a copy of the world it can roll forward.</li>
+          <li><b style="color:var(--ink)">Imagine before acting.</b> Because the G1 can predict 1 s ahead (its own steps, the furniture, the box it carries), it could test "what if I walk there carrying this?" before doing it. That's model-predictive control.</li>
+          <li><b style="color:var(--ink)">Exact vs learned models.</b> Here the imagination is MuJoCo itself, so it's exact. A real robot only has a learned model, and the "imperfect world model" toggle shows how that error grows.</li>
+          <li><b style="color:var(--ink)">A testbed.</b> The same room trains and tests new skills safely in simulation. See the training levels on the right.</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Train the G1 in MuJoCo: three levels</h4>
+        <pre id="roomTrain"><span class="c"># 1 · CPU, ~10 min: learn a new skill on top of Unitree's walking policy</span>
+<span class="c">#     PPO picks walk/turn commands to reach goals without hitting furniture</span>
+cd examples
+uv run --python 3.12 --with mujoco --with numpy --with gymnasium --with stable-baselines3 python train_g1_room_nav.py --train 150000
+<span class="c">#     then add --eval for scores, or --view to watch it</span>
+
+<span class="c"># 2 · GPU: learn walking itself from scratch (MuJoCo Playground, MJX, thousands of parallel G1s)</span>
+pip install playground "jax[cuda12]"
+python learning/train_jax_ppo.py --env_name=G1JoystickFlatTerrain
+
+<span class="c"># 3 · Isaac Lab: thousands of parallel worlds and sim-to-real (scenes 12 to 14)</span></pre>
+        <p id="roomTrainResult" style="margin-top:8px"></p>
       </div>
     </div>
   </div>
@@ -2443,7 +2469,7 @@ async function roomLoad() {
     const files = [...new Set([...xml.matchAll(/file="([^"]+)"/g)].map(x => x[1]))];
     const vfs = new mj.MjVFS();
     await Promise.all(files.map(async f => { const buf = new Uint8Array(await (await deckFetch("examples/g1/meshes/" + f)).arrayBuffer()); vfs.addBuffer("g1/meshes/" + f, buf); vfs.addBuffer(f, buf); }));
-    Object.assign(ROOM, { mj, T, m: mj.MjModel.from_xml_string(xml, vfs), net: g1Net(pol) });
+    Object.assign(ROOM, { mj, T, xml, m: mj.MjModel.from_xml_string(xml, vfs), net: g1Net(pol) });
     // the "imperfect" world model: same room, but it believes friction is 60% lower
     ROOM.mBad = mj.MjModel.from_xml_string(xml.replace('friction="0.6 0.005 0.0001"', 'friction="0.24 0.005 0.0001"'), vfs);
     ROOM.d = new mj.MjData(ROOM.m); ROOM.dImg = new mj.MjData(ROOM.m); ROOM.dImgBad = new mj.MjData(ROOM.mBad);
@@ -2475,17 +2501,63 @@ function g1Index() {
   const pel = names.indexOf("pelvis"), free = m.body_jntadr[pel], hip = jn.indexOf("left_hip_pitch_joint");
   ROOM.idx = { pel, fq: m.jnt_qposadr[free], fv: m.jnt_dofadr[free], jq: m.jnt_qposadr[hip], jv: m.jnt_dofadr[hip],
     furn: [...Array(m.nbody).keys()].filter(b => b > 0 && m.body_rootid[b] !== pel), lamp: names.indexOf("lamp"), start: [-2, -1.6, .793] };
+  // equality constraints are declared in order carry_<body>
+  ROOM.carryable = CARRYABLE.map(name => { const body = names.indexOf(name);
+    return { name: name.replace("_", " "), body, geoms: [...Array(m.ngeom).keys()].filter(g => m.geom_bodyid[g] === body) }; });
 }
 function g1ResetRobot(all) {
   const { mj, m, d } = ROOM, I = ROOM.idx, C = ROOM.net.C;
-  if (all) mj.mj_resetData(m, d);
+  if (ROOM.carry) carryDrop(); if (all) mj.mj_resetData(m, d);
+  d.xfrc_applied.fill(0);
   const q = d.qpos, v = d.qvel;
   q.set([...I.start, 1, 0, 0, 0], I.fq); q.set(C.default_angles, I.jq);
   for (let k = 0; k < 6; k++) v[I.fv + k] = 0; for (let k = 0; k < 12; k++) v[I.jv + k] = 0;
   mj.mj_forward(m, d); ROOM.cs = g1State(); ROOM.fallT = 0;
 }
-function g1Step(m, d, cs, cmd) {
+// carrying: a stiff, damped virtual spring holds the object between the hands, and the equal and opposite force acts on
+// the pelvis, so the walking policy really carries the weight (this 12-DoF G1 model has no arm motors to grasp with)
+const CARRY_POSE = [.26, 0, .12], CARRYABLE = ["box_2", "box_3", "ball", "book_1", "book_2", "book_3"];
+const qmul = (a, b) => [a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3], a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2], a[0] * b[2] - a[1] * b[3] + a[2] * b[0] + a[3] * b[1], a[0] * b[3] + a[1] * b[2] - a[2] * b[1] + a[3] * b[0]];
+function carrySetContacts(geoms, carried) { [ROOM.m, ROOM.mBad].forEach(m => { const ct = m.geom_contype, ca = m.geom_conaffinity; geoms.forEach(g => { ct[g] = carried ? 2 : 3; ca[g] = carried ? 2 : 3; }); }); }
+function carryForces(m, d, c) {
+  const I = ROOM.idx, b = c.body, p = I.pel, X = d.xpos, R = d.xmat, XI = d.xipos, v = d.qvel, f = d.xfrc_applied, r = 9 * p;
+  const e = c.t * c.t * (3 - 2 * c.t), loc = c.from.map((x, k) => x + (CARRY_POSE[k] - x) * e); // eased lift
+  const tgt = [0, 1, 2].map(k => X[3 * p + k] + R[r + 3 * k] * loc[0] + R[r + 3 * k + 1] * loc[1] + R[r + 3 * k + 2] * loc[2]);
+  const mo = m.body_subtreemass[b], j = m.body_dofadr[b], Rb = R.subarray(9 * b, 9 * b + 9);
+  const F = [0, 1, 2].map(k => mo * (400 * (tgt[k] - XI[3 * b + k]) - 40 * (v[j + k] - v[I.fv + k])) + (k === 2 ? mo * 9.81 : 0));
+  const wl = [v[j + 3], v[j + 4], v[j + 5]], w = [0, 1, 2].map(k => Rb[3 * k] * wl[0] + Rb[3 * k + 1] * wl[1] + Rb[3 * k + 2] * wl[2]);
+  const qp = d.xquat.subarray(4 * p, 4 * p + 4), qb = d.xquat.subarray(4 * b, 4 * b + 4);
+  let q = qmul([...qp], [qb[0], -qb[1], -qb[2], -qb[3]]); if (q[0] < 0) q = q.map(x => -x);
+  const sn = Math.hypot(q[1], q[2], q[3]), ang = sn < 1e-9 ? 0 : 2 * Math.atan2(sn, q[0]) / sn;
+  const In = Math.max(m.body_inertia[3 * b], m.body_inertia[3 * b + 1], m.body_inertia[3 * b + 2]);
+  const T = [0, 1, 2].map(k => In * (300 * e * q[k + 1] * ang - 30 * w[k]));
+  const rr = [0, 1, 2].map(k => XI[3 * b + k] - XI[3 * p + k]), rxF = [rr[1] * F[2] - rr[2] * F[1], rr[2] * F[0] - rr[0] * F[2], rr[0] * F[1] - rr[1] * F[0]];
+  f.set([...F, ...T], 6 * b); f.set([-F[0], -F[1], -F[2], -rxF[0] - T[0], -rxF[1] - T[1], -rxF[2] - T[2]], 6 * p);
+}
+function carryClear(d, c) { d.xfrc_applied.fill(0, 6 * c.body, 6 * c.body + 6); d.xfrc_applied.fill(0, 6 * ROOM.idx.pel, 6 * ROOM.idx.pel + 6); }
+function carryDrop(msg) {
+  const c = ROOM.carry; if (!c) return;
+  carryClear(ROOM.d, c); carrySetContacts(c.geoms, false); ROOM.carry = null;
+  if (msg) $("#roomLog").textContent = msg;
+}
+function carryToggle() {
+  if (!ROOM.m) return;
+  if (ROOM.carry) { const n = ROOM.carry.name; carryDrop(`Put down the ${n}. The walking policy never knew it was carrying anything; it just felt the extra weight and kept its balance.`); return; }
+  const { m, d } = ROOM, I = ROOM.idx, X = d.xpos, R = d.xmat, p = 3 * I.pel, r = 9 * I.pel;
+  const reach = [X[p] + R[r] * .35, X[p + 1] + R[r + 3] * .35];
+  let best = null;
+  ROOM.carryable.forEach(c => { const i = 3 * c.body, dist = Math.hypot(X[i] - reach[0], X[i + 1] - reach[1]); if (X[i + 2] < 1 && dist < .5 && (!best || dist < best.dist)) best = { ...c, dist }; });
+  if (!best) { $("#roomLog").textContent = "Nothing within reach. Walk right up to a small box, the ball or a fallen book, then press E."; return; }
+  const i = 3 * best.body, dx = X[i] - X[p], dy = X[i + 1] - X[p + 1], dz = X[i + 2] - X[p + 2]; // object position in the pelvis frame
+  const from = [R[r] * dx + R[r + 3] * dy + R[r + 6] * dz, R[r + 1] * dx + R[r + 4] * dy + R[r + 7] * dz, R[r + 2] * dx + R[r + 5] * dy + R[r + 8] * dz];
+  carrySetContacts(best.geoms, true);
+  ROOM.carry = { ...best, from, t: 0 };
+  $("#roomLog").textContent = `Picked up the ${best.name} (${m.body_mass[best.body].toFixed(1)} kg). The grasp is a physics spring, not a learned arm skill (this G1 model has no arm motors), but the walking policy really does carry the weight.`;
+}
+function carryAnimate(dt) { const c = ROOM.carry; if (c && c.t < 1) c.t = Math.min(1, c.t + dt / .6); }
+function g1Step(m, d, cs, cmd, carry) {
   const C = ROOM.net.C, I = ROOM.idx, q = d.qpos, v = d.qvel, u = d.ctrl;
+  if (carry) carryForces(m, d, carry);
   for (let j = 0; j < 12; j++) u[j] = (cs.tgt[j] - q[I.jq + j]) * C.kps[j] - v[I.jv + j] * C.kds[j];
   ROOM.mj.mj_step(m, d); cs.n++;
   if (cs.n % C.decimation) return;
@@ -2541,13 +2613,13 @@ function roomBuild() {
 }
 function roomImagineStart() {
   const bad = $("#roomBad").checked, m = bad ? ROOM.mBad : ROOM.m, di = bad ? ROOM.dImgBad : ROOM.dImg, d = ROOM.d;
-  di.qpos.set(d.qpos); di.qvel.set(d.qvel); di.qacc_warmstart.set(d.qacc_warmstart); di.time = d.time; ROOM.mj.mj_forward(m, di);
+  di.qpos.set(d.qpos); di.qvel.set(d.qvel); di.qacc_warmstart.set(d.qacc_warmstart); di.xfrc_applied.fill(0); di.time = d.time; ROOM.mj.mj_forward(m, di);
   const bodies = ROOM.lines.map(([b]) => b), snap = () => bodies.map(b => [di.xpos[3 * b], di.xpos[3 * b + 1], di.xpos[3 * b + 2]]);
-  ROOM.img = { m, di, n: 0, cmd: roomCmd(), cs: g1Copy(ROOM.cs), t0: d.time, paths: [snap()], snap, ms: 0, x0: Float64Array.from(d.xpos) };
+  ROOM.img = { m, di, n: 0, cmd: roomCmd(), cs: g1Copy(ROOM.cs), carry: ROOM.carry && { ...ROOM.carry }, t0: d.time, paths: [snap()], snap, ms: 0, x0: Float64Array.from(d.xpos) };
 }
 function roomImagineStep(budget) {
   const im = ROOM.img, t = performance.now();
-  for (let k = 0; k < budget && im.n < IMG_H; k++) { g1Step(im.m, im.di, im.cs, im.cmd); if (++im.n % PATH_EVERY === 0) im.paths.push(im.snap()); }
+  for (let k = 0; k < budget && im.n < IMG_H; k++) { g1Step(im.m, im.di, im.cs, im.cmd, im.carry); if (++im.n % PATH_EVERY === 0) im.paths.push(im.snap()); }
   im.ms += performance.now() - t;
   if (im.n >= IMG_H) { // publish the prediction
     ROOM.ghost = { gx: Float64Array.from(im.di.geom_xpos), gm: Float64Array.from(im.di.geom_xmat), paths: im.paths };
@@ -2578,11 +2650,12 @@ function drawRoom(now) {
   ROOM.acc += Math.min(.05, ROOM.tPrev ? (now - ROOM.tPrev) / 1000 : .016); ROOM.tPrev = now;
   const cmd = roomCmd(), t0 = performance.now(); let steps = 0;
   // real time if the machine keeps up, slow motion if not (never more than ~12 ms of physics per frame)
-  for (; ROOM.acc >= m.opt.timestep && steps < Math.max(4, 12000 / ROOM.stepUs); steps++) { g1Step(m, d, ROOM.cs, cmd); ROOM.acc -= m.opt.timestep; roomScore(); }
+  for (; ROOM.acc >= m.opt.timestep && steps < Math.max(4, 12000 / ROOM.stepUs); steps++) { g1Step(m, d, ROOM.cs, cmd, ROOM.carry); ROOM.acc -= m.opt.timestep; roomScore(); }
   if (ROOM.acc > .1) ROOM.acc = .1;
+  carryAnimate(steps * m.opt.timestep);
   if (steps) ROOM.stepUs = ROOM.stepUs * .9 + (performance.now() - t0) * 1000 / steps * .1;
   // the G1 fell? stand it back up after a moment
-  if (d.xpos[3 * I.pel + 2] < .45) { if ((ROOM.fallT += 1 / 60) > 1.5) { g1ResetRobot(false); ROOM.pending = []; ROOM.img = null; $("#roomLog").textContent = "The G1 fell over, so it was stood back up at the start. The policy was trained on flat ground and never saw furniture."; } }
+  if (d.xpos[3 * I.pel + 2] < .45) { if ((ROOM.fallT += 1 / 60) > 1.5) { carryDrop(); g1ResetRobot(false); ROOM.pending = []; ROOM.img = null; $("#roomLog").textContent = "The G1 fell over, so it was stood back up at the start. The policy was trained on flat ground and never saw furniture."; } }
   if (!ROOM.img && d.time - ROOM.lastImg >= IMG_EVERY) { roomImagineStart(); ROOM.lastImg = d.time; }
   if (ROOM.img) roomImagineStep(Math.max(5, Math.round(6000 / ROOM.stepUs)));
   // size
@@ -2617,12 +2690,14 @@ function drawRoom(now) {
   for (const b of I.furn) { const i = 3 * b; if (Math.hypot(X[i] - ROOM.start[i], X[i + 1] - ROOM.start[i + 1], X[i + 2] - ROOM.start[i + 2]) > .1) moved++; }
   $("#roomMoved").textContent = `${moved} / ${I.furn.length}`; $("#roomCon").textContent = d.ncon;
   const rt = steps * m.opt.timestep * 60;
-  roomHud(`<b>Unitree G1</b> · ${cmd[0] > 0 ? "walking" : cmd[0] < 0 ? "backing up" : cmd[2] ? "turning" : "stepping in place"} · t = ${d.time.toFixed(1)} s${rt < .85 ? ` · ${Math.round(rt * 100)}% speed` : ""}${$("#roomBad").checked ? " · <span style='color:#ff5c9a'>imperfect model</span>" : ""}`);
+  roomHud(`<b>Unitree G1</b> · ${cmd[0] > 0 ? "walking" : cmd[0] < 0 ? "backing up" : cmd[2] ? "turning" : "stepping in place"}${ROOM.carry ? ` · carrying the ${ROOM.carry.name}` : ""} · t = ${d.time.toFixed(1)} s${rt < .85 ? ` · ${Math.round(rt * 100)}% speed` : ""}${$("#roomBad").checked ? " · <span style='color:#ff5c9a'>imperfect model</span>" : ""}`);
   $("#roomPred").textContent = show ? "violet = imagined 1 s ahead" : "";
 }
 {
   const wrap = $("#roomWrap"), map = { w: "f", arrowup: "f", s: "b", arrowdown: "b", a: "l", arrowleft: "l", d: "r", arrowright: "r" };
-  const key = (e, v) => { const k = map[e.key.toLowerCase()]; if (!k) return; e.preventDefault(); e.stopPropagation(); ROOM.keys[k] = v; };
+  const key = (e, v) => {
+    if (e.key.toLowerCase() === "e") { e.preventDefault(); e.stopPropagation(); if (v && !e.repeat) carryToggle(); return; }
+    const k = map[e.key.toLowerCase()]; if (!k) return; e.preventDefault(); e.stopPropagation(); ROOM.keys[k] = v; };
   wrap.addEventListener("keydown", e => key(e, 1)); wrap.addEventListener("keyup", e => key(e, 0));
   wrap.addEventListener("blur", () => Object.keys(ROOM.keys).forEach(k => ROOM.keys[k] = 0));
   let drag = null; const c = $("#roomC");
@@ -2631,7 +2706,8 @@ function drawRoom(now) {
   c.addEventListener("pointerup", () => { drag = null; c.style.cursor = "grab"; });
   // zoom only once the room has focus, so scrolling the deck never gets trapped here
   c.addEventListener("wheel", e => { if (document.activeElement !== wrap) return; e.preventDefault(); ROOM.view.dist = Math.max(2, Math.min(14, ROOM.view.dist * (1 + Math.sign(e.deltaY) * .08))); }, { passive: false });
-  $$("#roomPad button").forEach(b => {
+  $("#roomGrab").onclick = () => { carryToggle(); wrap.focus(); };
+  $$("#roomPad button[data-k]").forEach(b => {
     const on = v => e => { e.preventDefault(); ROOM.keys[b.dataset.k] = v; b.classList.toggle("on", !!v); };
     b.addEventListener("pointerdown", on(1)); ["pointerup", "pointerleave", "pointercancel"].forEach(ev => b.addEventListener(ev, on(0)));
   });
