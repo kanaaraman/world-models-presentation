@@ -5,8 +5,8 @@ low-level controller (50 Hz). PPO learns a new high-level policy (5 Hz) that
 picks walking commands (forward speed, turn rate) to reach a random goal
 somewhere in the room, using goal direction and 8 "lidar" rays as observations.
 
-    # train (about 10 minutes for 100k steps on 4 CPU cores), then evaluate
-    uv run --python 3.12 --with mujoco --with numpy --with gymnasium --with stable-baselines3 python train_g1_room_nav.py --train 100000
+    # train (about 30 minutes for 150k steps on 4 CPU cores), then evaluate
+    uv run --python 3.12 --with mujoco --with numpy --with gymnasium --with stable-baselines3 python train_g1_room_nav.py --train 150000
     uv run --python 3.12 --with mujoco --with numpy --with gymnasium --with stable-baselines3 python train_g1_room_nav.py --eval
     uv run --python 3.12 --with mujoco --with numpy --with gymnasium --with stable-baselines3 python train_g1_room_nav.py --view
 
