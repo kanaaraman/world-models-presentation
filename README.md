@@ -21,7 +21,7 @@ Or download the ZIP from GitHub (**Code → Download ZIP**) and unzip it.
 
 ### 2. Serve the folder
 
-Most of the deck works if you just double-click `index.html`. The **MuJoCo** and **furnished-room** scenes (WebAssembly) and the embedded **Ridge Q1** and **Isaac Lab** demos need the page to be served over `http://`, so a local web server is recommended. Pick whichever tool you already have:
+You can simply double-click `index.html`: every scene works when opened from disk, as long as you're online (MuJoCo, three.js and the Isaac Lab demos load from CDNs). If you prefer a local web server, pick whichever tool you already have:
 
 | You have | Command | Then open |
 |---|---|---|
@@ -132,7 +132,7 @@ examples/isaaclab_world_model.py  Isaac Lab data-collection + world-model exampl
 
 ## Troubleshooting
 
-- **MuJoCo or furnished-room scene says it couldn't load:** you opened the file directly (`file://`) or you're offline. Serve the folder (step 2) and check your connection.
+- **MuJoCo or furnished-room scene says it couldn't load:** you're probably offline or a firewall blocks `cdn.jsdelivr.net`. Both scenes download their engines (MuJoCo WebAssembly, three.js) from there on first use. If you still see *Failed to fetch* for the room, you have an old copy of `index.html`, so pull the latest version.
 - **Isaac Lab demo stays blank:** it's downloading physics assets, so wait a few seconds. Or use the *open ↗* button to view it in its own tab.
 - **Driving doesn't respond:** click inside the room first so it has keyboard focus. Arrow keys then drive the robot instead of changing scenes. Click outside the room to get scene navigation back.
 - **Animations look slow:** background tabs and hidden windows are throttled by the browser. Keep the presentation tab in front.
