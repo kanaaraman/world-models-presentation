@@ -103,13 +103,22 @@ There's also a simpler wheeled-robot version of the room, [`examples/furnished_r
 
 Three levels, from laptop to GPU cluster:
 
-1. **CPU, about 10 minutes: a new skill on top of the walking policy.** [`examples/train_g1_room_nav.py`](examples/train_g1_room_nav.py) is hierarchical RL. Unitree's walking policy stays frozen, and PPO (Stable-Baselines3) learns a high-level policy at 5 Hz that picks walk/turn commands to reach random goals in the room without bumping into furniture. It observes goal direction and 8 lidar-style rays.
+1. **CPU, about 30 minutes: a new skill on top of the walking policy.** [`examples/train_g1_room_nav.py`](examples/train_g1_room_nav.py) is hierarchical RL. Unitree's walking policy stays frozen, and PPO (Stable-Baselines3) learns a high-level policy at 5 Hz that picks walk/turn commands to reach random goals in the room without bumping into furniture. It observes goal direction and 8 lidar-style rays.
    ```bash
    cd examples
    uv run --python 3.12 --with mujoco --with numpy --with gymnasium --with stable-baselines3 python train_g1_room_nav.py --train 150000
    uv run --python 3.12 --with mujoco --with numpy --with gymnasium --with stable-baselines3 python train_g1_room_nav.py --eval   # random vs hand-written vs trained
    uv run --python 3.12 --with mujoco --with numpy --with gymnasium --with stable-baselines3 python train_g1_room_nav.py --view   # watch it (green disc = goal)
    ```
+   Our run: 150k steps on 4 CPU cores in 29 min, with mean episode reward rising from −0.4 to 9.1. Evaluation over 30 goals:
+
+   | Controller | Goals reached | Falls | Avg time | Touching furniture |
+   |---|---|---|---|---|
+   | Random commands | 0% | 0% | 30.0 s (timeout) | 3.0 s / episode |
+   | Hand-written "turn and walk to goal" | 100% | 0% | 8.1 s | 0.8 s / episode |
+   | Trained PPO | 100% | 0% | 8.2 s | 1.2 s / episode |
+
+   PPO learned the skill from scratch and matches the hand-written controller, but it isn't yet better at avoiding furniture. Training longer, a stronger bump penalty, or goals behind obstacles are natural next experiments. The trained model is included (`examples/g1_room_nav_ppo.zip`), so `--eval` and `--view` work without training. Running `--train` again continues from it.
 2. **GPU: learn walking itself from scratch.** [MuJoCo Playground](https://github.com/google-deepmind/mujoco_playground) (Google DeepMind, Apache-2.0) trains thousands of G1s in parallel with MJX: `pip install playground "jax[cuda12]"`, then `python learning/train_jax_ppo.py --env_name=G1JoystickFlatTerrain` (or `G1JoystickRoughTerrain`).
 3. **Isaac Lab:** GPU-scale training and the sim-to-real workflow (scenes 12 to 14).
 

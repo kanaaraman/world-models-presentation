@@ -937,7 +937,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
       </div>
       <div>
         <h4>Train the G1 in MuJoCo: three levels</h4>
-        <pre id="roomTrain"><span class="c"># 1 · CPU, ~10 min: learn a new skill on top of Unitree's walking policy</span>
+        <pre id="roomTrain"><span class="c"># 1 · CPU, ~30 min: learn a new skill on top of Unitree's walking policy</span>
 <span class="c">#     PPO picks walk/turn commands to reach goals without hitting furniture</span>
 cd examples
 uv run --python 3.12 --with mujoco --with numpy --with gymnasium --with stable-baselines3 python train_g1_room_nav.py --train 150000
@@ -948,7 +948,7 @@ pip install playground "jax[cuda12]"
 python learning/train_jax_ppo.py --env_name=G1JoystickFlatTerrain
 
 <span class="c"># 3 · Isaac Lab: thousands of parallel worlds and sim-to-real (scenes 12 to 14)</span></pre>
-        <p id="roomTrainResult" style="margin-top:8px"></p>
+        <p id="roomTrainResult" style="margin-top:8px">Our run: 150k steps on 4 CPU cores in 29 min, with mean episode reward rising from −0.4 to 9. Over 30 test goals: <b>random commands 0%</b> reached; a <b>hand-written</b> "turn and walk" controller 100% (8.1 s, touching furniture 0.8 s per episode); <b>trained PPO 100%</b> (8.2 s, 1.2 s), no falls. It learned the skill from scratch, but it's not yet better at avoiding furniture than the hand-written version. The trained model ships as <code>examples/g1_room_nav_ppo.zip</code>.</p>
       </div>
     </div>
   </div>
