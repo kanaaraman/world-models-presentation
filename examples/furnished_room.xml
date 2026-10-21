@@ -1,0 +1,107 @@
+<!--
+  Furnished room for the "Robot in a real room" scene of the World Models deck.
+  A drivable mobile robot (planar x, y, yaw) in a 6 x 5 m room with a table,
+  two chairs, a sofa, a bookshelf with books, a floor lamp, a stack of boxes
+  and a ball. All furniture is free-floating and collides with the robot,
+  the walls and each other.
+
+  View it:  uv run --with mujoco python -m mujoco.viewer --mjcf=furnished_room.xml
+-->
+<mujoco model="furnished_room">
+  <compiler angle="degree"/>
+  <option timestep="0.01" integrator="implicitfast"/>
+  <visual><global offwidth="1280" offheight="720"/></visual>
+
+  <default>
+    <geom friction="0.6 0.005 0.0001" condim="3"/>
+    <default class="furn"><geom contype="3" conaffinity="3"/></default>
+    <default class="wall"><geom type="box" contype="3" conaffinity="3" rgba=".82 .82 .8 1"/></default>
+    <default class="bot"><geom contype="2" conaffinity="2"/></default>
+  </default>
+
+  <worldbody>
+    <light pos="0 0 4" dir="0 0 -1" diffuse=".8 .8 .8"/>
+    <geom name="floor" type="plane" size="3 2.5 .1" rgba=".52 .46 .4 1" contype="1" conaffinity="1"/>
+    <geom name="rug" type="box" pos="-.9 .6 .002" size="1 .7 .002" rgba=".55 .22 .25 1" contype="0" conaffinity="0"/>
+    <geom name="wall_n" class="wall" pos="0 2.55 .5" size="3.1 .05 .5"/>
+    <geom name="wall_s" class="wall" pos="0 -2.55 .5" size="3.1 .05 .5"/>
+    <geom name="wall_e" class="wall" pos="3.05 0 .5" size=".05 2.5 .5"/>
+    <geom name="wall_w" class="wall" pos="-3.05 0 .5" size=".05 2.5 .5"/>
+
+    <!-- mobile robot: slides in x/y and turns about z, never touches the floor -->
+    <body name="robot" pos="-2 -1.6 0">
+      <joint name="rx" type="slide" axis="1 0 0" damping="10"/>
+      <joint name="ry" type="slide" axis="0 1 0" damping="10"/>
+      <joint name="rz" type="hinge" axis="0 0 1" damping="4"/>
+      <geom name="r_base" class="bot" type="cylinder" pos="0 0 .25" size=".25 .2" mass="30" rgba=".92 .92 .95 1"/>
+      <geom name="r_torso" class="bot" type="capsule" fromto="0 0 .5 0 0 1.0" size=".15" mass="8" rgba=".86 .87 .9 1"/>
+      <geom name="r_head" class="bot" type="sphere" pos=".04 0 1.17" size=".12" mass="1" rgba=".17 .19 .21 1"/>
+      <geom name="r_eye" type="box" pos=".15 0 1.19" size=".02 .07 .025" mass=".01" rgba=".37 .95 1 1" contype="0" conaffinity="0"/>
+      <geom name="r_bumper" class="bot" type="box" pos=".24 0 .18" size=".05 .2 .06" mass="1" rgba="1 .71 .28 1"/>
+    </body>
+
+    <body name="table" pos=".6 .7 0">
+      <freejoint/>
+      <geom class="furn" type="box" pos="0 0 .74" size=".6 .4 .03" mass="10" rgba=".55 .38 .24 1"/>
+      <geom class="furn" type="box" pos=".54 .34 .355" size=".03 .03 .355" mass="1.2" rgba=".42 .29 .18 1"/>
+      <geom class="furn" type="box" pos="-.54 .34 .355" size=".03 .03 .355" mass="1.2" rgba=".42 .29 .18 1"/>
+      <geom class="furn" type="box" pos=".54 -.34 .355" size=".03 .03 .355" mass="1.2" rgba=".42 .29 .18 1"/>
+      <geom class="furn" type="box" pos="-.54 -.34 .355" size=".03 .03 .355" mass="1.2" rgba=".42 .29 .18 1"/>
+    </body>
+
+    <body name="chair_a" pos=".6 -.05 0">
+      <freejoint/>
+      <geom class="furn" type="box" pos="0 0 .45" size=".22 .22 .025" mass="2" rgba=".2 .45 .5 1"/>
+      <geom class="furn" type="box" pos="0 -.2 .76" size=".22 .02 .29" mass="1.5" rgba=".2 .45 .5 1"/>
+      <geom class="furn" type="box" pos=".19 .19 .212" size=".02 .02 .212" mass=".4" rgba=".15 .15 .17 1"/>
+      <geom class="furn" type="box" pos="-.19 .19 .212" size=".02 .02 .212" mass=".4" rgba=".15 .15 .17 1"/>
+      <geom class="furn" type="box" pos=".19 -.19 .212" size=".02 .02 .212" mass=".4" rgba=".15 .15 .17 1"/>
+      <geom class="furn" type="box" pos="-.19 -.19 .212" size=".02 .02 .212" mass=".4" rgba=".15 .15 .17 1"/>
+    </body>
+
+    <body name="chair_b" pos="1.55 .7 0" euler="0 0 90">
+      <freejoint/>
+      <geom class="furn" type="box" pos="0 0 .45" size=".22 .22 .025" mass="2" rgba=".2 .45 .5 1"/>
+      <geom class="furn" type="box" pos="0 -.2 .76" size=".22 .02 .29" mass="1.5" rgba=".2 .45 .5 1"/>
+      <geom class="furn" type="box" pos=".19 .19 .212" size=".02 .02 .212" mass=".4" rgba=".15 .15 .17 1"/>
+      <geom class="furn" type="box" pos="-.19 .19 .212" size=".02 .02 .212" mass=".4" rgba=".15 .15 .17 1"/>
+      <geom class="furn" type="box" pos=".19 -.19 .212" size=".02 .02 .212" mass=".4" rgba=".15 .15 .17 1"/>
+      <geom class="furn" type="box" pos="-.19 -.19 .212" size=".02 .02 .212" mass=".4" rgba=".15 .15 .17 1"/>
+    </body>
+
+    <body name="sofa" pos="-1.6 1.95 0">
+      <freejoint/>
+      <geom class="furn" type="box" pos="0 0 .22" size=".9 .4 .2" mass="30" rgba=".27 .33 .52 1"/>
+      <geom class="furn" type="box" pos="0 .32 .58" size=".9 .08 .2" mass="8" rgba=".24 .3 .48 1"/>
+      <geom class="furn" type="box" pos=".82 0 .5" size=".08 .4 .1" mass="3" rgba=".24 .3 .48 1"/>
+      <geom class="furn" type="box" pos="-.82 0 .5" size=".08 .4 .1" mass="3" rgba=".24 .3 .48 1"/>
+    </body>
+
+    <body name="bookshelf" pos="2.6 -1.4 0">
+      <freejoint/>
+      <geom class="furn" type="box" pos="0 0 .9" size=".16 .42 .9" mass="16" rgba=".62 .5 .36 1"/>
+    </body>
+    <body name="book_1" pos="2.6 -1.65 1.92"><freejoint/><geom class="furn" type="box" size=".1 .03 .12" mass=".5" rgba=".75 .2 .22 1"/></body>
+    <body name="book_2" pos="2.6 -1.55 1.92"><freejoint/><geom class="furn" type="box" size=".1 .03 .12" mass=".5" rgba=".2 .5 .3 1"/></body>
+    <body name="book_3" pos="2.6 -1.45 1.92"><freejoint/><geom class="furn" type="box" size=".1 .03 .12" mass=".5" rgba=".9 .75 .3 1"/></body>
+
+    <body name="lamp" pos="-2.5 .4 0">
+      <freejoint/>
+      <geom class="furn" type="cylinder" pos="0 0 .02" size=".15 .02" mass="1.2" rgba=".2 .2 .22 1"/>
+      <geom class="furn" type="capsule" fromto="0 0 .04 0 0 1.35" size=".02" mass=".4" rgba=".7 .7 .72 1"/>
+      <geom class="furn" type="cylinder" pos="0 0 1.42" size=".17 .1" mass=".3" rgba="1 .93 .75 1"/>
+    </body>
+
+    <body name="box_1" pos="1.6 -1 .2"><freejoint/><geom class="furn" type="box" size=".2 .2 .2" mass="3" rgba=".76 .6 .4 1"/></body>
+    <body name="box_2" pos="1.62 -.98 .58"><freejoint/><geom class="furn" type="box" size=".17 .17 .17" mass="2" rgba=".72 .56 .37 1"/></body>
+    <body name="box_3" pos="1.59 -1.01 .9"><freejoint/><geom class="furn" type="box" size=".14 .14 .14" mass="1" rgba=".79 .64 .44 1"/></body>
+
+    <body name="ball" pos="-.4 -1.2 .15"><freejoint/><geom class="furn" type="sphere" size=".15" mass=".5" rgba=".9 .3 .4 1"/></body>
+  </worldbody>
+
+  <actuator>
+    <motor name="fx" joint="rx" ctrlrange="-500 500"/>
+    <motor name="fy" joint="ry" ctrlrange="-500 500"/>
+    <motor name="tz" joint="rz" ctrlrange="-120 120"/>
+  </actuator>
+</mujoco>

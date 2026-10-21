@@ -387,6 +387,23 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 .rule .chip{cursor:pointer}
 .rule.fix{border-color:rgba(82,242,161,.45);background:rgba(82,242,161,.05)}
 
+/* FURNISHED ROOM */
+.room{display:grid;grid-template-columns:1fr 300px;gap:18px;margin-top:22px}
+#roomWrap{position:relative;aspect-ratio:16/10;overflow:hidden;outline:none}
+#roomWrap:focus-visible{box-shadow:0 0 0 2px var(--cyan)}
+#roomC{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab}
+.room-hud{position:absolute;left:12px;top:10px;right:12px;display:flex;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:11px;color:var(--muted);pointer-events:none}
+.room-hud b{color:var(--ink);font-weight:600}
+.room-focus{position:absolute;inset:0;display:grid;place-items:center;background:rgba(5,6,11,.45);font-size:14px;color:var(--ink);pointer-events:none;transition:opacity .3s}
+#roomWrap:focus .room-focus{opacity:0}
+.pad{display:grid;grid-template-columns:repeat(3,44px);grid-template-rows:repeat(2,40px);gap:6px;justify-content:center}
+.pad button{border:1px solid var(--line2);border-radius:10px;font-size:16px;background:rgba(255,255,255,.03);touch-action:none;user-select:none}
+.pad button:active,.pad button.on{border-color:var(--cyan);background:rgba(94,242,255,.12)}
+.n2r{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:22px 0 16px}
+.n2r div{padding:16px;border-radius:14px;border:1px solid var(--line);background:var(--panel);font-size:13px;color:var(--muted)}
+.n2r b{display:block;color:var(--ink);font-size:16px;font-weight:500;margin:6px 0 4px}
+.n2r span{font-family:var(--mono);font-size:11px;color:var(--cyan)}
+
 /* responsive */
 @media (max-width:1000px){
   .def-grid,.sand,.ap-body,.state-grid,.uc,.gs,.ch,.rq,.rw{grid-template-columns:1fr}
@@ -394,7 +411,8 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
   .il-grid{grid-template-columns:1fr}
   .s2r-steps{grid-template-columns:1fr 1fr}
   .s2r-steps button::after{display:none}
-  .s2r-detail,.lab{grid-template-columns:1fr}
+  .s2r-detail,.lab,.room{grid-template-columns:1fr}
+  .n2r{grid-template-columns:1fr 1fr}
   .s2r-detail > div + div{border-left:0;border-top:1px solid var(--line)}
   .rw-canvas{align-self:auto}
   .why-grid{grid-template-columns:1fr 1fr}
@@ -432,7 +450,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 <div class="grain"></div>
 <div id="progress"></div>
 <nav id="dots" aria-label="Scenes"></nav>
-<div id="counter"><b>01</b> / 19</div>
+<div id="counter"><b>01</b> / 21</div>
 <div id="hint"><kbd>↑</kbd> <kbd>↓</kbd> or scroll · <kbd>D</kbd> dream mode</div>
 
 <main>
@@ -445,8 +463,8 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
     <p class="lede rv" style="--d:3">AI that doesn't just <b>describe</b> the world, it <b>simulates</b> it. It can predict what happens next, imagine "what if", and plan before it acts.</p>
     <div class="typed rv" style="--d:4" id="typed"></div>
     <div class="hero-meta rv" style="--d:5">
-      <div><b>19 scenes</b>Scroll or use arrow keys</div>
-      <div><b>9 live demos</b>Drag, click, break things</div>
+      <div><b>21 scenes</b>Scroll or use arrow keys</div>
+      <div><b>10 live demos</b>Drag, click, break things</div>
       <div><b>40+ systems</b>Open and closed, all mapped</div>
     </div>
   </div>
@@ -874,10 +892,76 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
   </div>
 </section>
 
+<!-- 8h ROBOT IN A FURNISHED ROOM (MuJoCo + three.js) -->
+<section class="scene" id="room" data-title="Robot in a room" data-shape="4">
+  <div class="wrap">
+    <div class="eyebrow rv">14 — A robot in a real-looking room</div>
+    <h2 class="rv" style="--d:1">Drive it. Push the furniture. Watch it <em>imagine</em> first.</h2>
+    <p class="lede rv" style="--d:2">A living room in <b>real MuJoCo physics</b>: a table, chairs, a sofa, a bookshelf with books, a floor lamp, stacked boxes and a ball. Every piece has mass and friction and can slide, tip and collide. Twice a second the robot copies the world into its head and <b>rolls it 1.2 s forward</b>. The violet ghosts show where it expects the furniture to end up. Then reality catches up and it scores its own prediction. Switch on an <b>imperfect world model</b> to see predictions drift.</p>
+    <div class="room rv" style="--d:3">
+      <div class="panel" id="roomWrap" tabindex="0" aria-label="Furnished room simulation. Focus and drive with W A S D or arrow keys.">
+        <canvas id="roomC"></canvas>
+        <div class="room-hud"><span id="roomHud">loading MuJoCo + three.js…</span><span id="roomPred"></span></div>
+        <div class="room-focus" id="roomFocus"><span>Click here, then drive with <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> or the arrow keys · drag to orbit · scroll to zoom</span></div>
+      </div>
+      <div class="panel sand-ctrl">
+        <div class="pad" id="roomPad">
+          <span></span><button data-k="f" aria-label="forward">▲</button><span></span>
+          <button data-k="l" aria-label="turn left">◀</button><button data-k="b" aria-label="backward">▼</button><button data-k="r" aria-label="turn right">▶</button>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn" id="roomReset" style="flex:1">Reset room</button>
+          <button class="btn" id="roomCam" style="flex:1">Camera: orbit</button>
+        </div>
+        <label class="toggle"><input type="checkbox" id="roomGhost" checked> Show imagination (ghosts + paths)</label>
+        <label class="toggle"><input type="checkbox" id="roomBad"> Imperfect world model (thinks friction is 60% lower)</label>
+        <div class="stats">
+          <div class="stat"><small>Prediction error</small><b id="roomErr">—</b></div>
+          <div class="stat"><small>Imagine time</small><b id="roomMs">—</b></div>
+          <div class="stat"><small>Objects moved</small><b id="roomMoved">0</b></div>
+          <div class="stat"><small>Contacts</small><b id="roomCon">—</b></div>
+        </div>
+        <div class="log" id="roomLog">Try it: drive into the box stack, then tip over the lamp. Then turn on the imperfect model and do it again.</div>
+        <div class="log" style="font-size:10.5px">Same model file for Python: <a href="examples/furnished_room.xml" target="_blank" rel="noopener">examples/furnished_room.xml</a> · <code>uv run --with mujoco python -m mujoco.viewer --mjcf=furnished_room.xml</code></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8i REAL ROOMS INTO SIMULATION (NuRec + Isaac Lab) -->
+<section class="scene" id="real2sim" data-title="Real room → sim" data-shape="2">
+  <div class="wrap">
+    <div class="eyebrow rv">15 — Real-to-sim</div>
+    <h2 class="rv" style="--d:1">Scan your real room, then <em>train</em> in its digital twin</h2>
+    <p class="lede rv" style="--d:2">Hand-built furniture is a start. To be really confident, train the robot in a copy of the place it will work. <b>NVIDIA NuRec</b> turns stereo-camera footage of a real space into a simulation-ready scene: geometry, appearance and collision meshes. Isaac Lab 3.0 trains <b>COMPASS</b> navigation policies directly inside these scans.</p>
+    <div class="n2r rv" style="--d:3">
+      <div><span>01 · capture</span><b>Walk through the room</b>A stereo camera, hand-held or on the robot, records the space.</div>
+      <div><span>02 · reconstruct</span><b>NuRec Real2Sim</b>Footage becomes aligned geometry, appearance and collision meshes for Isaac Sim.</div>
+      <div><span>03 · train</span><b>Isaac Lab + COMPASS</b>Train and evaluate navigation inside the reconstructed scene, with added objects for variety.</div>
+      <div><span>04 · deploy</span><b>Same room, real robot</b>Export and run over ROS 2 in the very space that was scanned.</div>
+    </div>
+    <div class="rq rv" style="--d:4">
+      <div class="panel crit">
+        <h3>NVIDIA sample scans (PhysicalAI-Robotics-NuRec)</h3>
+        <div class="gifs">
+          <figure><img loading="lazy" src="https://download.isaacsim.omniverse.nvidia.com/isaaclab/images/nurec_real2sim_living_room.gif" alt="NuRec reconstruction of a real living room used for training"><figcaption>Living Room · hand-held stereo camera</figcaption></figure>
+          <figure><img loading="lazy" src="https://download.isaacsim.omniverse.nvidia.com/isaaclab/images/nurec_real2sim_galileo.gif" alt="NuRec reconstruction of the Galileo space with a Nova Carter robot"><figcaption>Galileo · Nova Carter, 4 stereo cameras</figcaption></figure>
+        </div>
+        <div style="font-size:13px;color:var(--muted)">Get the sample scenes: <a href="https://huggingface.co/datasets/nvidia/PhysicalAI-Robotics-NuRec" target="_blank" rel="noopener">huggingface.co/datasets/nvidia/PhysicalAI-Robotics-NuRec</a> · Workflow: <a href="https://github.com/NVlabs/COMPASS/blob/real2sim/isaaclab_3.0/docs/handbook/workflows/nurec_real2sim.md" target="_blank" rel="noopener">COMPASS real2sim handbook</a> · <a href="https://docs.nvidia.com/nurec/index.html" target="_blank" rel="noopener">NuRec docs</a></div>
+      </div>
+      <div class="panel code" style="display:flex;flex-direction:column">
+        <div class="code-head"><span class="dots3"><i></i><i></i><i></i></span><span>Add furniture to an Isaac Lab scene (sketch)</span><span class="sp"></span><button class="chip" id="r2sCopy">copy</button></div>
+        <pre id="r2sCode"></pre>
+        <div class="why-pick"><b>Train for the room, not one room.</b> Randomize where furniture goes, its mass and friction, and give the policy an obstacle sense (depth camera or height scan). A G1 walking policy trained on an empty floor won't avoid a sofa. This sketch follows Isaac Lab 3.0's tutorial classes but is untested. Isaac Lab can also spawn MJCF files like this deck's room via <code>MjcfFileCfg</code>.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- 9 LANDSCAPE -->
 <section class="scene" id="software" data-title="Software map" data-shape="3">
   <div class="wrap">
-    <div class="eyebrow rv">14 — The landscape</div>
+    <div class="eyebrow rv">16 — The landscape</div>
     <h2 class="rv" style="--d:1">Every tool you can <em>use</em> today</h2>
     <p class="lede rv" style="--d:2">Filter by access level or category, or search. A green badge means fully open source, cyan means open weights, pink means closed or API-only, and amber marks simulators and engines.</p>
     <div class="ls-ctrl rv" style="--d:3">
@@ -898,7 +982,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 <!-- 10 GET STARTED -->
 <section class="scene" id="start" data-title="Get started" data-shape="4">
   <div class="wrap">
-    <div class="eyebrow rv">15 — Open source, hands-on</div>
+    <div class="eyebrow rv">17 — Open source, hands-on</div>
     <h2 class="rv" style="--d:1">Pick a path, <em>run</em> something tonight</h2>
     <div class="gs">
       <div class="panel paths rv" style="--d:2" id="paths"><h3>I want to…</h3></div>
@@ -914,7 +998,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 <!-- 11 CHALLENGES -->
 <section class="scene" id="challenges" data-title="Challenges" data-shape="2">
   <div class="wrap">
-    <div class="eyebrow rv">16 — The hard parts</div>
+    <div class="eyebrow rv">18 — The hard parts</div>
     <h2 class="rv" style="--d:1">Small errors, <em>compounded</em></h2>
     <p class="lede rv" style="--d:2">A world model feeds its own predictions back in as input. A 1% error per step doesn't stay at 1%. Move the slider, then switch on observations to see why closed-loop grounding matters.</p>
     <div class="ch">
@@ -933,7 +1017,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 <!-- 12 FUTURE / CLOSE -->
 <section class="scene" id="future" data-title="What's next" data-shape="5">
   <div class="wrap">
-    <div class="eyebrow rv">17 — Looking ahead</div>
+    <div class="eyebrow rv">19 — Looking ahead</div>
     <h2 class="rv" style="--d:1">Where this is <em>heading</em></h2>
     <div class="fut">
       <div class="panel fu rv" style="--d:2"><h4>LLM + world model fusion</h4><p>Language for reasoning, a world model for physics. Vision-language-action models (Gemini Robotics, GR00T, π0) are the first step.</p></div>
@@ -1973,12 +2057,14 @@ const MJ_XML = `<mujoco model="cartpole">
 </mujoco>`;
 const MJS = { mj: null, m: null, d: null, loading: false, mode: "idle", u: 0, k: 0, ep: 0, hist: [], predQ: [], plans: [], best: null, ms: 0, up: [] };
 const SUB = 4, CTRL_DT = .04; // 4 MuJoCo steps of 10 ms per control step
+// one MuJoCo WebAssembly instance shared by every scene that needs it
+let mjModule = null;
+const getMujoco = () => mjModule || (mjModule = import(MJ_URL).then(m => m.default()));
 async function mjLoad() {
   if (MJS.mj || MJS.loading) return; MJS.loading = true;
   $("#mjStatus").textContent = "Loading MuJoCo WebAssembly…";
   try {
-    const { default: loadMujoco } = await import(MJ_URL);
-    MJS.mj = await loadMujoco();
+    MJS.mj = await getMujoco();
     MJS.m = MJS.mj.MjModel.from_xml_string(MJ_XML); MJS.d = new MJS.mj.MjData(MJS.m);
     mjHang();
     $("#mjStatus").innerHTML = `<span style="color:var(--green)">●</span> MuJoCo 3.14 running (WASM) · nq=${MJS.m.nq}, nu=${MJS.m.nu}, dt=${MJS.m.opt.timestep}s`;
@@ -2337,6 +2423,193 @@ function drawLab() {
   ctx.fillStyle = "#5b6178"; ctx.font = "10px JetBrains Mono, monospace"; ctx.fillText(`same policy · ${LAB.dr ? "trained with domain randomization" : "trained on nominal sim"}`, 16, h - 10);
 }
 
+/* ============ ROBOT IN A FURNISHED ROOM (MuJoCo physics, three.js rendering) ============ */
+const THREE_URL = "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+const IMG_H = 120, IMG_EVERY = .6, IMG_BUDGET = 6; // imagine 120 × 10 ms = 1.2 s ahead, spread over ~20 frames
+const ROOM = { keys: { f: 0, b: 0, l: 0, r: 0 }, view: { az: -2.2, el: .75, dist: 7.2, follow: false }, img: null, ghost: null, pending: [], lastImg: -1, tPrev: 0, acc: 0 };
+const roomHud = s => $("#roomHud").innerHTML = s;
+async function roomLoad() {
+  if (ROOM.m || ROOM.loading) return; ROOM.loading = true;
+  try {
+    const [mj, T, xml] = await Promise.all([getMujoco(), import(THREE_URL),
+      fetch("examples/furnished_room.xml").then(r => { if (!r.ok) throw new Error("room model HTTP " + r.status); return r.text(); })]);
+    Object.assign(ROOM, { mj, T, m: mj.MjModel.from_xml_string(xml) });
+    ROOM.d = new mj.MjData(ROOM.m);
+    // the "imperfect" world model: same room, but it believes friction is 60% lower
+    ROOM.mBad = mj.MjModel.from_xml_string(xml.replace('friction="0.6 0.005 0.0001"', 'friction="0.24 0.005 0.0001"'));
+    ROOM.dImg = new mj.MjData(ROOM.m); ROOM.dImgBad = new mj.MjData(ROOM.mBad);
+    mj.mj_forward(ROOM.m, ROOM.d);
+    ROOM.start = Float64Array.from(ROOM.d.xpos);
+    roomBuild();
+  } catch (e) { roomHud("couldn't load the room (" + (e && e.message || e) + "). Serve the folder over http, see the README."); }
+  ROOM.loading = false;
+}
+function roomBuild() {
+  const { T, m } = ROOM, canvas = $("#roomC");
+  const r = new T.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true }); r.setPixelRatio(Math.min(DPR, 1.5)); r.shadowMap.enabled = true; r.shadowMap.type = T.PCFSoftShadowMap;
+  const scene = new T.Scene(); scene.background = new T.Color(0x0b0d16);
+  const cam = new T.PerspectiveCamera(45, 1.6, .05, 60); cam.up.set(0, 0, 1);
+  scene.add(new T.HemisphereLight(0xdfe8ff, 0x3a3026, 1.1));
+  const sun = new T.DirectionalLight(0xffffff, 1.8); sun.position.set(2.5, -3.5, 7); sun.castShadow = true;
+  Object.assign(sun.shadow.camera, { left: -4.5, right: 4.5, top: 4.5, bottom: -4.5, near: .5, far: 20 }); sun.shadow.mapSize.set(1024, 1024); sun.shadow.bias = -.0005;
+  scene.add(sun);
+  const lampGlow = new T.PointLight(0xffe2b0, 1.4, 4); scene.add(lampGlow);
+  const type = m.geom_type, size = m.geom_size, rgba = m.geom_rgba, body = m.geom_bodyid;
+  const lampBody = [...Array(m.nbody).keys()].find(i => m.body(i).name === "lamp");
+  const meshes = [], ghosts = [], ghostMat = new T.MeshBasicMaterial({ color: 0x9b7bff, transparent: true, opacity: .3, depthWrite: false });
+  for (let i = 0; i < m.ngeom; i++) {
+    const s = [size[3 * i], size[3 * i + 1], size[3 * i + 2]], t = type[i]; let g;
+    if (t === 0) g = new T.PlaneGeometry(2 * s[0], 2 * s[1]);
+    else if (t === 2) g = new T.SphereGeometry(s[0], 24, 16);
+    else if (t === 3) g = new T.CapsuleGeometry(s[0], 2 * s[1], 6, 16).rotateX(Math.PI / 2);
+    else if (t === 5) g = new T.CylinderGeometry(s[0], s[0], 2 * s[1], 28).rotateX(Math.PI / 2);
+    else if (t === 4) g = new T.SphereGeometry(1, 20, 14).scale(s[0], s[1], s[2]);
+    else g = new T.BoxGeometry(2 * s[0], 2 * s[1], 2 * s[2]);
+    const col = new T.Color(rgba[4 * i], rgba[4 * i + 1], rgba[4 * i + 2]);
+    const mesh = new T.Mesh(g, new T.MeshStandardMaterial({ color: col, roughness: .78, metalness: .04, emissive: body[i] === lampBody && t === 5 && s[0] > .1 ? 0x664422 : 0 }));
+    mesh.castShadow = t !== 0; mesh.receiveShadow = true; mesh.matrixAutoUpdate = false; scene.add(mesh); meshes.push(mesh);
+    if (body[i] >= 2) { const gh = new T.Mesh(g, ghostMat); gh.matrixAutoUpdate = false; gh.visible = false; scene.add(gh); ghosts.push([i, gh]); }
+  }
+  // imagined paths: one line per moving body (robot in cyan)
+  const lines = [];
+  for (let b = 1; b < m.nbody; b++) {
+    const geo = new T.BufferGeometry(); geo.setAttribute("position", new T.BufferAttribute(new Float32Array(3 * (IMG_H / 6 + 1)), 3));
+    const ln = new T.Line(geo, new T.LineBasicMaterial({ color: b === 1 ? 0x5ef2ff : 0xb59cff, transparent: true, opacity: .9 })); ln.visible = false; ln.frustumCulled = false; scene.add(ln); lines.push(ln);
+  }
+  Object.assign(ROOM, { r, scene, cam, meshes, ghosts, lines, lampGlow, lampBody });
+  roomHud("ready · click the room to drive");
+}
+function roomCmd() { const k = ROOM.keys; return [(k.f - k.b) * 1.1, (k.l - k.r) * 2.2]; }
+function roomControl(d, [v, w]) {
+  const yaw = d.qpos[2], M = 40;
+  d.ctrl[0] = Math.max(-500, Math.min(500, 8 * M * (v * Math.cos(yaw) - d.qvel[0])));
+  d.ctrl[1] = Math.max(-500, Math.min(500, 8 * M * (v * Math.sin(yaw) - d.qvel[1])));
+  d.ctrl[2] = Math.max(-120, Math.min(120, 60 * (w - d.qvel[2])));
+}
+function roomImagineStart() {
+  const bad = $("#roomBad").checked, m = bad ? ROOM.mBad : ROOM.m, di = bad ? ROOM.dImgBad : ROOM.dImg, d = ROOM.d;
+  di.qpos.set(d.qpos); di.qvel.set(d.qvel); di.qacc_warmstart.set(d.qacc_warmstart); di.time = d.time; ROOM.mj.mj_forward(m, di);
+  const paths = Array.from({ length: ROOM.m.nbody }, (_, b) => [[di.xpos[3 * b], di.xpos[3 * b + 1], di.xpos[3 * b + 2]]]);
+  ROOM.img = { m, di, n: 0, cmd: roomCmd(), t0: d.time, paths, ms: 0, x0: Float64Array.from(d.xpos) };
+}
+function roomImagineStep(budget) {
+  const im = ROOM.img, t = performance.now();
+  for (let k = 0; k < budget && im.n < IMG_H; k++) {
+    roomControl(im.di, im.cmd); ROOM.mj.mj_step(im.m, im.di); im.n++;
+    if (im.n % 6 === 0) for (let b = 0; b < ROOM.m.nbody; b++) im.paths[b].push([im.di.xpos[3 * b], im.di.xpos[3 * b + 1], im.di.xpos[3 * b + 2]]);
+  }
+  im.ms += performance.now() - t;
+  if (im.n >= IMG_H) { // publish the prediction
+    ROOM.ghost = { gx: Float64Array.from(im.di.geom_xpos), gm: Float64Array.from(im.di.geom_xmat), paths: im.paths };
+    ROOM.pending.push({ t: im.t0 + IMG_H * ROOM.m.opt.timestep, pred: Float64Array.from(im.di.xpos), x0: im.x0, cmd: im.cmd });
+    $("#roomMs").textContent = im.ms.toFixed(0) + " ms";
+    ROOM.img = null;
+  }
+}
+function roomScore() {
+  const d = ROOM.d; if (!ROOM.pending.length || d.time < ROOM.pending[0].t - 1e-6) return; const p = ROOM.pending.shift();
+  let err = 0, n = 0;
+  for (let b = 2; b < ROOM.m.nbody; b++) {
+    const i = 3 * b, real = [d.xpos[i], d.xpos[i + 1], d.xpos[i + 2]], pr = [p.pred[i], p.pred[i + 1], p.pred[i + 2]];
+    const movedReal = Math.hypot(real[0] - p.x0[i], real[1] - p.x0[i + 1], real[2] - p.x0[i + 2]), movedPred = Math.hypot(pr[0] - p.x0[i], pr[1] - p.x0[i + 1], pr[2] - p.x0[i + 2]);
+    if (movedReal > .03 || movedPred > .03) { err += Math.hypot(real[0] - pr[0], real[1] - pr[1], real[2] - pr[2]); n++; }
+  }
+  const sameCmd = roomCmd().every((v, j) => v === p.cmd[j]);
+  $("#roomErr").textContent = n ? (err / n * 100).toFixed(1) + " cm" : "nothing moving";
+  if (n) $("#roomLog").textContent = err / n < .02 ? `Predicted ${n} moving object${n > 1 ? "s" : ""} to within ${(err / n * 100).toFixed(1)} cm. With an exact model of the world, imagination matches reality.`
+    : !sameCmd ? `Off by ${(err / n * 100).toFixed(1)} cm, but you changed the controls mid-prediction. The model imagined you'd keep doing the same thing.`
+    : $("#roomBad").checked ? `Off by ${(err / n * 100).toFixed(1)} cm: the imperfect model thinks things slide further than they do. This is what a learned world model's error looks like.`
+    : `Off by ${(err / n * 100).toFixed(1)} cm. Contacts are chaotic: tiny differences grow, especially when objects tip.`;
+
+}
+function drawRoom(now) {
+  if (!ROOM.r) return;
+  const { mj, m, d, T, r, cam } = ROOM;
+  ROOM.acc += Math.min(.05, ROOM.tPrev ? (now - ROOM.tPrev) / 1000 : .016); ROOM.tPrev = now;
+  const cmd = roomCmd();
+  for (let k = 0; ROOM.acc >= m.opt.timestep && k < 8; k++) { roomControl(d, cmd); mj.mj_step(m, d); ROOM.acc -= m.opt.timestep; roomScore(); }
+  if (!ROOM.img && d.time - ROOM.lastImg >= IMG_EVERY) { roomImagineStart(); ROOM.lastImg = d.time; }
+  if (ROOM.img) roomImagineStep(IMG_BUDGET);
+
+  // size
+  const c = $("#roomC"), w = c.clientWidth, h = c.clientHeight;
+  if (r.domElement.width !== Math.round(w * DPR) || r.domElement.height !== Math.round(h * DPR)) { r.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); }
+  // real geoms
+  const gx = d.geom_xpos, gm = d.geom_xmat;
+  const put = (mesh, X, R, i) => { const p = 3 * i, q = 9 * i; mesh.matrix.set(R[q], R[q + 1], R[q + 2], X[p], R[q + 3], R[q + 4], R[q + 5], X[p + 1], R[q + 6], R[q + 7], R[q + 8], X[p + 2], 0, 0, 0, 1); mesh.matrixWorldNeedsUpdate = true; };
+  ROOM.meshes.forEach((mesh, i) => put(mesh, gx, gm, i));
+  // ghosts and paths from the latest imagination
+  const show = $("#roomGhost").checked && ROOM.ghost;
+  ROOM.ghosts.forEach(([i, gh]) => {
+    if (!show) { gh.visible = false; return; }
+    const p = 3 * i, moved = Math.hypot(ROOM.ghost.gx[p] - gx[p], ROOM.ghost.gx[p + 1] - gx[p + 1], ROOM.ghost.gx[p + 2] - gx[p + 2]);
+    gh.visible = moved > .02; if (gh.visible) put(gh, ROOM.ghost.gx, ROOM.ghost.gm, i);
+  });
+  ROOM.lines.forEach((ln, k) => {
+    const b = k + 1, path = show && ROOM.ghost.paths[b];
+    if (!path) { ln.visible = false; return; }
+    const span = Math.hypot(path[path.length - 1][0] - path[0][0], path[path.length - 1][1] - path[0][1], path[path.length - 1][2] - path[0][2]);
+    ln.visible = span > .03; if (!ln.visible) return;
+    const a = ln.geometry.attributes.position; path.forEach((pt, j) => a.setXYZ(j, pt[0], pt[1], pt[2] + (b === 1 ? .05 : 0))); a.needsUpdate = true; ln.geometry.setDrawRange(0, path.length);
+  });
+  // lamp light follows the lamp shade
+  const lb = 3 * ROOM.lampBody; ROOM.lampGlow.position.set(d.xpos[lb], d.xpos[lb + 1], d.xpos[lb + 2] + 1.3);
+  // camera
+  const rb = 3; // robot body xpos
+  if (ROOM.view.follow) {
+    const yaw = d.qpos[2], x = d.xpos[rb], y = d.xpos[rb + 1];
+    cam.position.set(x - 2.4 * Math.cos(yaw), y - 2.4 * Math.sin(yaw), 1.9); cam.lookAt(x + Math.cos(yaw), y + Math.sin(yaw), .5);
+  } else {
+    const { az, el, dist } = ROOM.view; cam.position.set(dist * Math.cos(el) * Math.cos(az), dist * Math.cos(el) * Math.sin(az), .4 + dist * Math.sin(el)); cam.lookAt(0, 0, .4);
+  }
+  r.render(ROOM.scene, cam);
+  // stats
+  const xp = d.xpos; let moved = 0;
+  for (let b = 2; b < m.nbody; b++) { const i = 3 * b; if (Math.hypot(xp[i] - ROOM.start[i], xp[i + 1] - ROOM.start[i + 1], xp[i + 2] - ROOM.start[i + 2]) > .1) moved++; }
+  $("#roomMoved").textContent = `${moved} / ${m.nbody - 2}`; $("#roomCon").textContent = d.ncon;
+  roomHud(`<b>MuJoCo</b> t = ${d.time.toFixed(1)} s · ${cmd[0] ? (cmd[0] > 0 ? "forward" : "reverse") : cmd[1] ? "turning" : "idle"}${$("#roomBad").checked ? " · <span style='color:#ff5c9a'>imperfect model</span>" : ""}`);
+  $("#roomPred").textContent = show ? "violet = imagined 1.2 s ahead" : "";
+}
+{
+  const wrap = $("#roomWrap"), map = { w: "f", arrowup: "f", s: "b", arrowdown: "b", a: "l", arrowleft: "l", d: "r", arrowright: "r" };
+  const key = (e, v) => { const k = map[e.key.toLowerCase()]; if (!k) return; e.preventDefault(); e.stopPropagation(); ROOM.keys[k] = v; };
+  wrap.addEventListener("keydown", e => key(e, 1)); wrap.addEventListener("keyup", e => key(e, 0));
+  wrap.addEventListener("blur", () => Object.keys(ROOM.keys).forEach(k => ROOM.keys[k] = 0));
+  let drag = null; const c = $("#roomC");
+  c.addEventListener("pointerdown", e => { wrap.focus(); drag = [e.clientX, e.clientY, ROOM.view.az, ROOM.view.el]; c.setPointerCapture(e.pointerId); c.style.cursor = "grabbing"; });
+  c.addEventListener("pointermove", e => { if (!drag || ROOM.view.follow) return; ROOM.view.az = drag[2] - (e.clientX - drag[0]) * .008; ROOM.view.el = Math.max(.12, Math.min(1.45, drag[3] + (e.clientY - drag[1]) * .006)); });
+  c.addEventListener("pointerup", () => { drag = null; c.style.cursor = "grab"; });
+  // zoom only once the room has focus, so scrolling the deck never gets trapped here
+  c.addEventListener("wheel", e => { if (document.activeElement !== wrap) return; e.preventDefault(); ROOM.view.dist = Math.max(2.5, Math.min(14, ROOM.view.dist * (1 + Math.sign(e.deltaY) * .08))); }, { passive: false });
+  $$("#roomPad button").forEach(b => {
+    const on = v => e => { e.preventDefault(); ROOM.keys[b.dataset.k] = v; b.classList.toggle("on", !!v); };
+    b.addEventListener("pointerdown", on(1)); ["pointerup", "pointerleave", "pointercancel"].forEach(ev => b.addEventListener(ev, on(0)));
+  });
+  $("#roomReset").onclick = () => { if (!ROOM.m) return; ROOM.mj.mj_resetData(ROOM.m, ROOM.d); ROOM.mj.mj_forward(ROOM.m, ROOM.d); ROOM.img = ROOM.ghost = null; ROOM.pending = []; ROOM.lastImg = -1; $("#roomErr").textContent = "—"; $("#roomLog").textContent = "Room reset."; };
+  $("#roomCam").onclick = () => { ROOM.view.follow = !ROOM.view.follow; $("#roomCam").textContent = "Camera: " + (ROOM.view.follow ? "follow" : "orbit"); };
+  new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) roomLoad(); }), { threshold: .15 }).observe($("#room"));
+}
+$("#r2sCode").innerHTML = hl(`import isaaclab.sim as sim_utils
+from isaaclab.assets import AssetBaseCfg, RigidObjectCfg
+from isaaclab.scene import InteractiveSceneCfg
+from isaaclab.utils import configclass
+
+@configclass
+class FurnishedRoomSceneCfg(InteractiveSceneCfg):
+    # static shell: a scanned NuRec scene or any room USD
+    room = AssetBaseCfg(prim_path="{ENV_REGEX_NS}/Room",
+        spawn=sim_utils.UsdFileCfg(usd_path="assets/living_room.usd"))
+    # movable furniture: real mass, friction and collisions
+    chair = RigidObjectCfg(prim_path="{ENV_REGEX_NS}/Chair",
+        spawn=sim_utils.UsdFileCfg(usd_path="assets/chair.usd",
+            rigid_props=sim_utils.UsdPhysicsRigidBodyCfg(),
+            mass_props=sim_utils.MassCfg(mass=6.0),
+            collision_props=sim_utils.UsdPhysicsCollisionCfg()),
+        init_state=RigidObjectCfg.InitialStateCfg(pos=(1.2, 0.4, 0.0)))
+    # then add your robot (e.g. G1) + a depth camera / height scanner,
+    # and randomize furniture poses at reset with an event term`);
+$("#r2sCopy").onclick = () => { navigator.clipboard?.writeText($("#r2sCode").textContent).then(() => { $("#r2sCopy").textContent = "copied ✓"; setTimeout(() => $("#r2sCopy").textContent = "copy", 1400); }).catch(() => {}); };
+
 /* ============ MAIN LOOP for scene canvases ============ */
 function loop(t) {
   const id = scenes[curScene].id;
@@ -2345,6 +2618,7 @@ function loop(t) {
   if (id === "ridgew") drawRW(t);
   if (id === "mujoco") drawMJ();
   if (id === "sim2real") drawLab();
+  if (id === "room") drawRoom(t);
   if (id === "challenges") drawDrift(t);
   requestAnimationFrame(loop);
 }
