@@ -5,7 +5,7 @@
   and a ball. All furniture is free-floating and collides with the robot,
   the walls and each other.
 
-  View it:  uv run --with mujoco python -m mujoco.viewer --mjcf=furnished_room.xml
+  View it with the MuJoCo viewer: see the README (mujoco.viewer, mjcf flag).
 -->
 <mujoco model="furnished_room">
   <compiler angle="degree"/>

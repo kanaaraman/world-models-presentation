@@ -445,116 +445,6 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 </style>
 </head>
 <body>
-<!-- room model, embedded so the scene also works when index.html is opened straight from disk; same as examples/furnished_room.xml -->
-<script type="text/xml" id="roomXml">
-<!--
-  Furnished room for the "Robot in a real room" scene of the World Models deck.
-  A drivable mobile robot (planar x, y, yaw) in a 6 x 5 m room with a table,
-  two chairs, a sofa, a bookshelf with books, a floor lamp, a stack of boxes
-  and a ball. All furniture is free-floating and collides with the robot,
-  the walls and each other.
-
-  View it:  uv run --with mujoco python -m mujoco.viewer --mjcf=furnished_room.xml
--->
-<mujoco model="furnished_room">
-  <compiler angle="degree"/>
-  <option timestep="0.01" integrator="implicitfast"/>
-  <visual><global offwidth="1280" offheight="720"/></visual>
-
-  <default>
-    <geom friction="0.6 0.005 0.0001" condim="3"/>
-    <default class="furn"><geom contype="3" conaffinity="3"/></default>
-    <default class="wall"><geom type="box" contype="3" conaffinity="3" rgba=".82 .82 .8 1"/></default>
-    <default class="bot"><geom contype="2" conaffinity="2"/></default>
-  </default>
-
-  <worldbody>
-    <light pos="0 0 4" dir="0 0 -1" diffuse=".8 .8 .8"/>
-    <geom name="floor" type="plane" size="3 2.5 .1" rgba=".52 .46 .4 1" contype="1" conaffinity="1"/>
-    <geom name="rug" type="box" pos="-.9 .6 .002" size="1 .7 .002" rgba=".55 .22 .25 1" contype="0" conaffinity="0"/>
-    <geom name="wall_n" class="wall" pos="0 2.55 .5" size="3.1 .05 .5"/>
-    <geom name="wall_s" class="wall" pos="0 -2.55 .5" size="3.1 .05 .5"/>
-    <geom name="wall_e" class="wall" pos="3.05 0 .5" size=".05 2.5 .5"/>
-    <geom name="wall_w" class="wall" pos="-3.05 0 .5" size=".05 2.5 .5"/>
-
-    <!-- mobile robot: slides in x/y and turns about z, never touches the floor -->
-    <body name="robot" pos="-2 -1.6 0">
-      <joint name="rx" type="slide" axis="1 0 0" damping="10"/>
-      <joint name="ry" type="slide" axis="0 1 0" damping="10"/>
-      <joint name="rz" type="hinge" axis="0 0 1" damping="4"/>
-      <geom name="r_base" class="bot" type="cylinder" pos="0 0 .25" size=".25 .2" mass="30" rgba=".92 .92 .95 1"/>
-      <geom name="r_torso" class="bot" type="capsule" fromto="0 0 .5 0 0 1.0" size=".15" mass="8" rgba=".86 .87 .9 1"/>
-      <geom name="r_head" class="bot" type="sphere" pos=".04 0 1.17" size=".12" mass="1" rgba=".17 .19 .21 1"/>
-      <geom name="r_eye" type="box" pos=".15 0 1.19" size=".02 .07 .025" mass=".01" rgba=".37 .95 1 1" contype="0" conaffinity="0"/>
-      <geom name="r_bumper" class="bot" type="box" pos=".24 0 .18" size=".05 .2 .06" mass="1" rgba="1 .71 .28 1"/>
-    </body>
-
-    <body name="table" pos=".6 .7 0">
-      <freejoint/>
-      <geom class="furn" type="box" pos="0 0 .74" size=".6 .4 .03" mass="10" rgba=".55 .38 .24 1"/>
-      <geom class="furn" type="box" pos=".54 .34 .355" size=".03 .03 .355" mass="1.2" rgba=".42 .29 .18 1"/>
-      <geom class="furn" type="box" pos="-.54 .34 .355" size=".03 .03 .355" mass="1.2" rgba=".42 .29 .18 1"/>
-      <geom class="furn" type="box" pos=".54 -.34 .355" size=".03 .03 .355" mass="1.2" rgba=".42 .29 .18 1"/>
-      <geom class="furn" type="box" pos="-.54 -.34 .355" size=".03 .03 .355" mass="1.2" rgba=".42 .29 .18 1"/>
-    </body>
-
-    <body name="chair_a" pos=".6 -.05 0">
-      <freejoint/>
-      <geom class="furn" type="box" pos="0 0 .45" size=".22 .22 .025" mass="2" rgba=".2 .45 .5 1"/>
-      <geom class="furn" type="box" pos="0 -.2 .76" size=".22 .02 .29" mass="1.5" rgba=".2 .45 .5 1"/>
-      <geom class="furn" type="box" pos=".19 .19 .212" size=".02 .02 .212" mass=".4" rgba=".15 .15 .17 1"/>
-      <geom class="furn" type="box" pos="-.19 .19 .212" size=".02 .02 .212" mass=".4" rgba=".15 .15 .17 1"/>
-      <geom class="furn" type="box" pos=".19 -.19 .212" size=".02 .02 .212" mass=".4" rgba=".15 .15 .17 1"/>
-      <geom class="furn" type="box" pos="-.19 -.19 .212" size=".02 .02 .212" mass=".4" rgba=".15 .15 .17 1"/>
-    </body>
-
-    <body name="chair_b" pos="1.55 .7 0" euler="0 0 90">
-      <freejoint/>
-      <geom class="furn" type="box" pos="0 0 .45" size=".22 .22 .025" mass="2" rgba=".2 .45 .5 1"/>
-      <geom class="furn" type="box" pos="0 -.2 .76" size=".22 .02 .29" mass="1.5" rgba=".2 .45 .5 1"/>
-      <geom class="furn" type="box" pos=".19 .19 .212" size=".02 .02 .212" mass=".4" rgba=".15 .15 .17 1"/>
-      <geom class="furn" type="box" pos="-.19 .19 .212" size=".02 .02 .212" mass=".4" rgba=".15 .15 .17 1"/>
-      <geom class="furn" type="box" pos=".19 -.19 .212" size=".02 .02 .212" mass=".4" rgba=".15 .15 .17 1"/>
-      <geom class="furn" type="box" pos="-.19 -.19 .212" size=".02 .02 .212" mass=".4" rgba=".15 .15 .17 1"/>
-    </body>
-
-    <body name="sofa" pos="-1.6 1.95 0">
-      <freejoint/>
-      <geom class="furn" type="box" pos="0 0 .22" size=".9 .4 .2" mass="30" rgba=".27 .33 .52 1"/>
-      <geom class="furn" type="box" pos="0 .32 .58" size=".9 .08 .2" mass="8" rgba=".24 .3 .48 1"/>
-      <geom class="furn" type="box" pos=".82 0 .5" size=".08 .4 .1" mass="3" rgba=".24 .3 .48 1"/>
-      <geom class="furn" type="box" pos="-.82 0 .5" size=".08 .4 .1" mass="3" rgba=".24 .3 .48 1"/>
-    </body>
-
-    <body name="bookshelf" pos="2.6 -1.4 0">
-      <freejoint/>
-      <geom class="furn" type="box" pos="0 0 .9" size=".16 .42 .9" mass="16" rgba=".62 .5 .36 1"/>
-    </body>
-    <body name="book_1" pos="2.6 -1.65 1.92"><freejoint/><geom class="furn" type="box" size=".1 .03 .12" mass=".5" rgba=".75 .2 .22 1"/></body>
-    <body name="book_2" pos="2.6 -1.55 1.92"><freejoint/><geom class="furn" type="box" size=".1 .03 .12" mass=".5" rgba=".2 .5 .3 1"/></body>
-    <body name="book_3" pos="2.6 -1.45 1.92"><freejoint/><geom class="furn" type="box" size=".1 .03 .12" mass=".5" rgba=".9 .75 .3 1"/></body>
-
-    <body name="lamp" pos="-2.5 .4 0">
-      <freejoint/>
-      <geom class="furn" type="cylinder" pos="0 0 .02" size=".15 .02" mass="1.2" rgba=".2 .2 .22 1"/>
-      <geom class="furn" type="capsule" fromto="0 0 .04 0 0 1.35" size=".02" mass=".4" rgba=".7 .7 .72 1"/>
-      <geom class="furn" type="cylinder" pos="0 0 1.42" size=".17 .1" mass=".3" rgba="1 .93 .75 1"/>
-    </body>
-
-    <body name="box_1" pos="1.6 -1 .2"><freejoint/><geom class="furn" type="box" size=".2 .2 .2" mass="3" rgba=".76 .6 .4 1"/></body>
-    <body name="box_2" pos="1.62 -.98 .58"><freejoint/><geom class="furn" type="box" size=".17 .17 .17" mass="2" rgba=".72 .56 .37 1"/></body>
-    <body name="box_3" pos="1.59 -1.01 .9"><freejoint/><geom class="furn" type="box" size=".14 .14 .14" mass="1" rgba=".79 .64 .44 1"/></body>
-
-    <body name="ball" pos="-.4 -1.2 .15"><freejoint/><geom class="furn" type="sphere" size=".15" mass=".5" rgba=".9 .3 .4 1"/></body>
-  </worldbody>
-
-  <actuator>
-    <motor name="fx" joint="rx" ctrlrange="-500 500"/>
-    <motor name="fy" joint="ry" ctrlrange="-500 500"/>
-    <motor name="tz" joint="rz" ctrlrange="-120 120"/>
-  </actuator>
-</mujoco>
-</script>
 <canvas id="field"></canvas>
 <div class="vignette"></div>
 <div class="grain"></div>
@@ -1005,34 +895,34 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 <!-- 8h ROBOT IN A FURNISHED ROOM (MuJoCo + three.js) -->
 <section class="scene" id="room" data-title="Robot in a room" data-shape="4">
   <div class="wrap">
-    <div class="eyebrow rv">14 — A robot in a real-looking room</div>
-    <h2 class="rv" style="--d:1">Drive it. Push the furniture. Watch it <em>imagine</em> first.</h2>
-    <p class="lede rv" style="--d:2">A living room in <b>real MuJoCo physics</b>: a table, chairs, a sofa, a bookshelf with books, a floor lamp, stacked boxes and a ball. Every piece has mass and friction and can slide, tip and collide. Twice a second the robot copies the world into its head and <b>rolls it 1.2 s forward</b>. The violet ghosts show where it expects the furniture to end up. Then reality catches up and it scores its own prediction. Switch on an <b>imperfect world model</b> to see predictions drift.</p>
+    <div class="eyebrow rv">14 — A humanoid in a real-looking room</div>
+    <h2 class="rv" style="--d:1">Walk the G1. Push the furniture. Watch it <em>imagine</em> first.</h2>
+    <p class="lede rv" style="--d:2">A <b>Unitree G1 humanoid</b> walks with Unitree's own pretrained walking policy (an LSTM running at 50 Hz in your browser) through a living room in <b>real MuJoCo physics</b>: a table, chairs, a sofa, a bookshelf with books, a floor lamp, stacked boxes and a ball. Everything has mass and friction and can slide, tip and collide. About once a second the G1 copies the whole world, its own controller memory included, and <b>rolls it 1 s forward</b>. The violet ghosts show where it expects itself and the furniture to be. Then reality catches up and it scores its own prediction. Switch on an <b>imperfect world model</b> to see predictions drift.</p>
     <div class="room rv" style="--d:3">
-      <div class="panel" id="roomWrap" tabindex="0" aria-label="Furnished room simulation. Focus and drive with W A S D or arrow keys.">
+      <div class="panel" id="roomWrap" tabindex="0" aria-label="Furnished room simulation with a Unitree G1. Focus and walk with W A S D or arrow keys.">
         <canvas id="roomC"></canvas>
-        <div class="room-hud"><span id="roomHud">loading MuJoCo + three.js…</span><span id="roomPred"></span></div>
-        <div class="room-focus" id="roomFocus"><span>Click here, then drive with <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> or the arrow keys · drag to orbit · scroll to zoom</span></div>
+        <div class="room-hud"><span id="roomHud">loading MuJoCo, three.js and the Unitree G1…</span><span id="roomPred"></span></div>
+        <div class="room-focus" id="roomFocus"><span>Click here, then walk with <kbd>W</kbd> forward · <kbd>A</kbd> <kbd>D</kbd> turn · <kbd>S</kbd> back · drag to orbit · scroll to zoom</span></div>
       </div>
       <div class="panel sand-ctrl">
         <div class="pad" id="roomPad">
-          <span></span><button data-k="f" aria-label="forward">▲</button><span></span>
-          <button data-k="l" aria-label="turn left">◀</button><button data-k="b" aria-label="backward">▼</button><button data-k="r" aria-label="turn right">▶</button>
+          <span></span><button data-k="f" aria-label="walk forward">▲</button><span></span>
+          <button data-k="l" aria-label="turn left">↶</button><button data-k="b" aria-label="walk backward">▼</button><button data-k="r" aria-label="turn right">↷</button>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn" id="roomReset" style="flex:1">Reset room</button>
           <button class="btn" id="roomCam" style="flex:1">Camera: orbit</button>
         </div>
         <label class="toggle"><input type="checkbox" id="roomGhost" checked> Show imagination (ghosts + paths)</label>
-        <label class="toggle"><input type="checkbox" id="roomBad"> Imperfect world model (thinks friction is 60% lower)</label>
+        <label class="toggle"><input type="checkbox" id="roomBad"> Imperfect world model (thinks floor and furniture are 60% slipperier)</label>
         <div class="stats">
           <div class="stat"><small>Prediction error</small><b id="roomErr">—</b></div>
           <div class="stat"><small>Imagine time</small><b id="roomMs">—</b></div>
           <div class="stat"><small>Objects moved</small><b id="roomMoved">0</b></div>
           <div class="stat"><small>Contacts</small><b id="roomCon">—</b></div>
         </div>
-        <div class="log" id="roomLog">Try it: drive into the box stack, then tip over the lamp. Then turn on the imperfect model and do it again.</div>
-        <div class="log" style="font-size:10.5px">Same model file for Python: <a href="examples/furnished_room.xml" target="_blank" rel="noopener">examples/furnished_room.xml</a> · <code>uv run --with mujoco python -m mujoco.viewer --mjcf=furnished_room.xml</code></div>
+        <div class="log" id="roomLog">Try it: walk into the box stack (it's ahead and to the right), kick the ball, then turn on the imperfect model and do it again.</div>
+        <div class="log" style="font-size:10.5px">Robot model and walking policy: <a href="https://github.com/unitreerobotics/unitree_rl_gym" target="_blank" rel="noopener">unitree_rl_gym</a> (BSD-3, Unitree Robotics), with meshes simplified for the web. Python version with the MuJoCo viewer: <a href="examples/g1_room_walk.py" target="_blank" rel="noopener">examples/g1_room_walk.py</a></div>
       </div>
     </div>
   </div>
@@ -2533,27 +2423,82 @@ function drawLab() {
   ctx.fillStyle = "#5b6178"; ctx.font = "10px JetBrains Mono, monospace"; ctx.fillText(`same policy · ${LAB.dr ? "trained with domain randomization" : "trained on nominal sim"}`, 16, h - 10);
 }
 
-/* ============ ROBOT IN A FURNISHED ROOM (MuJoCo physics, three.js rendering) ============ */
+/* ============ UNITREE G1 IN A FURNISHED ROOM (MuJoCo physics, Unitree policy, three.js rendering) ============ */
 const THREE_URL = "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
-const IMG_H = 120, IMG_EVERY = .6, IMG_BUDGET = 6; // imagine 120 × 10 ms = 1.2 s ahead, spread over ~20 frames
-const ROOM = { keys: { f: 0, b: 0, l: 0, r: 0 }, view: { az: -2.2, el: .75, dist: 7.2, follow: false }, img: null, ghost: null, pending: [], lastImg: -1, tPrev: 0, acc: 0 };
+// assets load from this folder; when the page is opened straight from disk, they come from the published copy instead
+const DECK_URL = "https://kanaaraman.github.io/world-models-presentation/";
+const IMG_H = 500, IMG_EVERY = .8, PATH_EVERY = 25; // imagine 500 × 2 ms = 1 s ahead
+const ROOM = { keys: { f: 0, b: 0, l: 0, r: 0 }, view: { az: -2.2, el: .62, dist: 6.4, follow: false }, img: null, ghost: null, pending: [], lastImg: -1, tPrev: 0, acc: 0, stepUs: 300, fallT: 0 };
 const roomHud = s => $("#roomHud").innerHTML = s;
+async function deckFetch(path) {
+  try { const r = await fetch(path); if (r.ok) return r; } catch (e) { /* file:// or offline: try the published copy */ }
+  const r = await fetch(DECK_URL + path); if (!r.ok) throw new Error(path + " HTTP " + r.status); return r;
+}
 async function roomLoad() {
   if (ROOM.m || ROOM.loading) return; ROOM.loading = true;
   try {
-    const [mj, T, xml] = await Promise.all([getMujoco(), import(THREE_URL),
-      Promise.resolve($("#roomXml").textContent)]);
-    Object.assign(ROOM, { mj, T, m: mj.MjModel.from_xml_string(xml) });
-    ROOM.d = new mj.MjData(ROOM.m);
+    roomHud("loading MuJoCo, three.js and the Unitree G1…");
+    const [mj, T, xml, pol] = await Promise.all([getMujoco(), import(THREE_URL),
+      deckFetch("examples/g1_room.xml").then(r => r.text()), deckFetch("examples/g1/g1_walk_policy.json").then(r => r.json())]);
+    const files = [...new Set([...xml.matchAll(/file="([^"]+)"/g)].map(x => x[1]))];
+    const vfs = new mj.MjVFS();
+    await Promise.all(files.map(async f => { const buf = new Uint8Array(await (await deckFetch("examples/g1/meshes/" + f)).arrayBuffer()); vfs.addBuffer("g1/meshes/" + f, buf); vfs.addBuffer(f, buf); }));
+    Object.assign(ROOM, { mj, T, m: mj.MjModel.from_xml_string(xml, vfs), net: g1Net(pol) });
     // the "imperfect" world model: same room, but it believes friction is 60% lower
-    ROOM.mBad = mj.MjModel.from_xml_string(xml.replace('friction="0.6 0.005 0.0001"', 'friction="0.24 0.005 0.0001"'));
-    ROOM.dImg = new mj.MjData(ROOM.m); ROOM.dImgBad = new mj.MjData(ROOM.mBad);
-    mj.mj_forward(ROOM.m, ROOM.d);
+    ROOM.mBad = mj.MjModel.from_xml_string(xml.replace('friction="0.6 0.005 0.0001"', 'friction="0.24 0.005 0.0001"'), vfs);
+    ROOM.d = new mj.MjData(ROOM.m); ROOM.dImg = new mj.MjData(ROOM.m); ROOM.dImgBad = new mj.MjData(ROOM.mBad);
+    g1Index(); g1ResetRobot(true);
     ROOM.start = Float64Array.from(ROOM.d.xpos);
     roomBuild();
-  } catch (e) { roomHud("couldn't load the 3D room (" + (e && e.message || e) + "). It needs an internet connection for MuJoCo and three.js."); }
+  } catch (e) { roomHud("couldn't load the 3D room (" + (e && e.message || e) + "). It needs an internet connection."); }
   ROOM.loading = false;
 }
+// --- the Unitree walking policy: LSTM(47→64) + MLP(64→32→12), run at 50 Hz ---
+function g1Net(P) {
+  const f = k => Float32Array.from(P[k]), bi = f("memory.bias_ih_l0"), bh = f("memory.bias_hh_l0");
+  return { Wih: f("memory.weight_ih_l0"), Whh: f("memory.weight_hh_l0"), b: bi.map((v, i) => v + bh[i]),
+    W1: f("actor.0.weight"), b1: f("actor.0.bias"), W2: f("actor.2.weight"), b2: f("actor.2.bias"), C: P.config };
+}
+function g1Policy(st, x) {
+  const N = ROOM.net, g = new Float32Array(256), sig = z => 1 / (1 + Math.exp(-z));
+  for (let r = 0; r < 256; r++) { let s = N.b[r]; for (let k = 0, o = r * 47; k < 47; k++) s += N.Wih[o + k] * x[k]; for (let k = 0, o = r * 64; k < 64; k++) s += N.Whh[o + k] * st.h[k]; g[r] = s; }
+  for (let k = 0; k < 64; k++) { st.c[k] = sig(g[64 + k]) * st.c[k] + sig(g[k]) * Math.tanh(g[128 + k]); st.h[k] = sig(g[192 + k]) * Math.tanh(st.c[k]); }
+  const z = new Float32Array(32), a = new Float32Array(12);
+  for (let r = 0; r < 32; r++) { let s = N.b1[r]; for (let k = 0; k < 64; k++) s += N.W1[r * 64 + k] * st.h[k]; z[r] = s > 0 ? s : Math.exp(s) - 1; }
+  for (let r = 0; r < 12; r++) { let s = N.b2[r]; for (let k = 0; k < 32; k++) s += N.W2[r * 32 + k] * z[k]; a[r] = s; }
+  return a;
+}
+const g1State = () => ({ h: new Float32Array(64), c: new Float32Array(64), act: new Float32Array(12), tgt: Float32Array.from(ROOM.net.C.default_angles), n: 0 });
+const g1Copy = s => ({ h: s.h.slice(), c: s.c.slice(), act: s.act.slice(), tgt: s.tgt.slice(), n: s.n });
+function g1Index() {
+  const m = ROOM.m, names = [...Array(m.nbody).keys()].map(i => m.body(i).name), jn = [...Array(m.njnt).keys()].map(i => m.jnt(i).name);
+  const pel = names.indexOf("pelvis"), free = m.body_jntadr[pel], hip = jn.indexOf("left_hip_pitch_joint");
+  ROOM.idx = { pel, fq: m.jnt_qposadr[free], fv: m.jnt_dofadr[free], jq: m.jnt_qposadr[hip], jv: m.jnt_dofadr[hip],
+    furn: [...Array(m.nbody).keys()].filter(b => b > 0 && m.body_rootid[b] !== pel), lamp: names.indexOf("lamp"), start: [-2, -1.6, .793] };
+}
+function g1ResetRobot(all) {
+  const { mj, m, d } = ROOM, I = ROOM.idx, C = ROOM.net.C;
+  if (all) mj.mj_resetData(m, d);
+  const q = d.qpos, v = d.qvel;
+  q.set([...I.start, 1, 0, 0, 0], I.fq); q.set(C.default_angles, I.jq);
+  for (let k = 0; k < 6; k++) v[I.fv + k] = 0; for (let k = 0; k < 12; k++) v[I.jv + k] = 0;
+  mj.mj_forward(m, d); ROOM.cs = g1State(); ROOM.fallT = 0;
+}
+function g1Step(m, d, cs, cmd) {
+  const C = ROOM.net.C, I = ROOM.idx, q = d.qpos, v = d.qvel, u = d.ctrl;
+  for (let j = 0; j < 12; j++) u[j] = (cs.tgt[j] - q[I.jq + j]) * C.kps[j] - v[I.jv + j] * C.kds[j];
+  ROOM.mj.mj_step(m, d); cs.n++;
+  if (cs.n % C.decimation) return;
+  const x = new Float32Array(47), qw = q[I.fq + 3], qx = q[I.fq + 4], qy = q[I.fq + 5], qz = q[I.fq + 6];
+  x[0] = v[I.fv + 3] * C.ang_vel_scale; x[1] = v[I.fv + 4] * C.ang_vel_scale; x[2] = v[I.fv + 5] * C.ang_vel_scale;
+  x[3] = 2 * (-qz * qx + qw * qy); x[4] = -2 * (qz * qy + qw * qx); x[5] = 1 - 2 * (qw * qw + qz * qz);
+  for (let k = 0; k < 3; k++) x[6 + k] = cmd[k] * C.cmd_scale[k];
+  for (let j = 0; j < 12; j++) { x[9 + j] = (q[I.jq + j] - C.default_angles[j]) * C.dof_pos_scale; x[21 + j] = v[I.jv + j] * C.dof_vel_scale; x[33 + j] = cs.act[j]; }
+  const ph = (cs.n * C.sim_dt) % C.period / C.period; x[45] = Math.sin(2 * Math.PI * ph); x[46] = Math.cos(2 * Math.PI * ph);
+  cs.act = g1Policy(cs, x);
+  for (let j = 0; j < 12; j++) cs.tgt[j] = cs.act[j] * C.action_scale + C.default_angles[j];
+}
+function roomCmd() { const k = ROOM.keys; return [k.f ? .6 : k.b ? -.3 : 0, 0, (k.l - k.r) * .7]; }
 function roomBuild() {
   const { T, m } = ROOM, canvas = $("#roomC");
   const r = new T.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true }); r.setPixelRatio(Math.min(DPR, 1.5)); r.shadowMap.enabled = true; r.shadowMap.type = T.PCFSoftShadowMap;
@@ -2564,50 +2509,45 @@ function roomBuild() {
   Object.assign(sun.shadow.camera, { left: -4.5, right: 4.5, top: 4.5, bottom: -4.5, near: .5, far: 20 }); sun.shadow.mapSize.set(1024, 1024); sun.shadow.bias = -.0005;
   scene.add(sun);
   const lampGlow = new T.PointLight(0xffe2b0, 1.4, 4); scene.add(lampGlow);
-  const type = m.geom_type, size = m.geom_size, rgba = m.geom_rgba, body = m.geom_bodyid;
-  const lampBody = [...Array(m.nbody).keys()].find(i => m.body(i).name === "lamp");
-  const meshes = [], ghosts = [], ghostMat = new T.MeshBasicMaterial({ color: 0x9b7bff, transparent: true, opacity: .3, depthWrite: false });
+  const type = m.geom_type, size = m.geom_size, rgba = m.geom_rgba, body = m.geom_bodyid, I = ROOM.idx;
+  const mv = m.mesh_vert, mf = m.mesh_face;
+  const meshes = [], ghosts = [], ghostMat = new T.MeshBasicMaterial({ color: 0x9b7bff, transparent: true, opacity: .28, depthWrite: false });
   for (let i = 0; i < m.ngeom; i++) {
+    if (rgba[4 * i + 3] === 0) { meshes.push(null); continue; } // invisible collision helpers
     const s = [size[3 * i], size[3 * i + 1], size[3 * i + 2]], t = type[i]; let g;
     if (t === 0) g = new T.PlaneGeometry(2 * s[0], 2 * s[1]);
     else if (t === 2) g = new T.SphereGeometry(s[0], 24, 16);
     else if (t === 3) g = new T.CapsuleGeometry(s[0], 2 * s[1], 6, 16).rotateX(Math.PI / 2);
     else if (t === 5) g = new T.CylinderGeometry(s[0], s[0], 2 * s[1], 28).rotateX(Math.PI / 2);
     else if (t === 4) g = new T.SphereGeometry(1, 20, 14).scale(s[0], s[1], s[2]);
-    else g = new T.BoxGeometry(2 * s[0], 2 * s[1], 2 * s[2]);
-    const col = new T.Color(rgba[4 * i], rgba[4 * i + 1], rgba[4 * i + 2]);
-    const mesh = new T.Mesh(g, new T.MeshStandardMaterial({ color: col, roughness: .78, metalness: .04, emissive: body[i] === lampBody && t === 5 && s[0] > .1 ? 0x664422 : 0 }));
-    mesh.castShadow = t !== 0; mesh.receiveShadow = true; mesh.matrixAutoUpdate = false; scene.add(mesh); meshes.push(mesh);
-    if (body[i] >= 2) { const gh = new T.Mesh(g, ghostMat); gh.matrixAutoUpdate = false; gh.visible = false; scene.add(gh); ghosts.push([i, gh]); }
+    else if (t === 7) { // mesh: use MuJoCo's compiled vertices, so it lines up exactly with geom_xpos/xmat
+      const id = m.geom_dataid[i], va = m.mesh_vertadr[id], vn = m.mesh_vertnum[id], fa = m.mesh_faceadr[id], fn = m.mesh_facenum[id];
+      g = new T.BufferGeometry(); g.setAttribute("position", new T.BufferAttribute(Float32Array.from(mv.subarray(3 * va, 3 * (va + vn))), 3));
+      g.setIndex(new T.BufferAttribute(Uint32Array.from(mf.subarray(3 * fa, 3 * (fa + fn))), 1)); g.computeVertexNormals();
+    } else g = new T.BoxGeometry(2 * s[0], 2 * s[1], 2 * s[2]);
+    const robot = m.body_rootid[body[i]] === I.pel;
+    const mat = new T.MeshStandardMaterial({ color: new T.Color(rgba[4 * i], rgba[4 * i + 1], rgba[4 * i + 2]), roughness: robot ? .45 : .78, metalness: robot ? .35 : .04,
+      emissive: body[i] === I.lamp && t === 5 && s[0] > .1 ? 0x664422 : 0 });
+    const mesh = new T.Mesh(g, mat); mesh.castShadow = t !== 0; mesh.receiveShadow = true; mesh.matrixAutoUpdate = false; scene.add(mesh); meshes.push(mesh);
+    if (body[i] > 0 && (robot ? t === 7 : true)) { const gh = new T.Mesh(g, ghostMat); gh.matrixAutoUpdate = false; gh.visible = false; scene.add(gh); ghosts.push([i, gh]); }
   }
-  // imagined paths: one line per moving body (robot in cyan)
-  const lines = [];
-  for (let b = 1; b < m.nbody; b++) {
-    const geo = new T.BufferGeometry(); geo.setAttribute("position", new T.BufferAttribute(new Float32Array(3 * (IMG_H / 6 + 1)), 3));
-    const ln = new T.Line(geo, new T.LineBasicMaterial({ color: b === 1 ? 0x5ef2ff : 0xb59cff, transparent: true, opacity: .9 })); ln.visible = false; ln.frustumCulled = false; scene.add(ln); lines.push(ln);
-  }
-  Object.assign(ROOM, { r, scene, cam, meshes, ghosts, lines, lampGlow, lampBody });
-  roomHud("ready · click the room to drive");
-}
-function roomCmd() { const k = ROOM.keys; return [(k.f - k.b) * 1.1, (k.l - k.r) * 2.2]; }
-function roomControl(d, [v, w]) {
-  const yaw = d.qpos[2], M = 40;
-  d.ctrl[0] = Math.max(-500, Math.min(500, 8 * M * (v * Math.cos(yaw) - d.qvel[0])));
-  d.ctrl[1] = Math.max(-500, Math.min(500, 8 * M * (v * Math.sin(yaw) - d.qvel[1])));
-  d.ctrl[2] = Math.max(-120, Math.min(120, 60 * (w - d.qvel[2])));
+  // imagined paths: the G1's pelvis (cyan) and every piece of furniture (violet)
+  const lines = [I.pel, ...I.furn].map(b => {
+    const geo = new T.BufferGeometry(); geo.setAttribute("position", new T.BufferAttribute(new Float32Array(3 * (IMG_H / PATH_EVERY + 2)), 3));
+    const ln = new T.Line(geo, new T.LineBasicMaterial({ color: b === I.pel ? 0x5ef2ff : 0xb59cff })); ln.visible = false; ln.frustumCulled = false; scene.add(ln); return [b, ln];
+  });
+  Object.assign(ROOM, { r, scene, cam, meshes, ghosts, lines, lampGlow });
+  roomHud("ready · click the room, then walk the G1 with W A S D");
 }
 function roomImagineStart() {
   const bad = $("#roomBad").checked, m = bad ? ROOM.mBad : ROOM.m, di = bad ? ROOM.dImgBad : ROOM.dImg, d = ROOM.d;
   di.qpos.set(d.qpos); di.qvel.set(d.qvel); di.qacc_warmstart.set(d.qacc_warmstart); di.time = d.time; ROOM.mj.mj_forward(m, di);
-  const paths = Array.from({ length: ROOM.m.nbody }, (_, b) => [[di.xpos[3 * b], di.xpos[3 * b + 1], di.xpos[3 * b + 2]]]);
-  ROOM.img = { m, di, n: 0, cmd: roomCmd(), t0: d.time, paths, ms: 0, x0: Float64Array.from(d.xpos) };
+  const bodies = ROOM.lines.map(([b]) => b), snap = () => bodies.map(b => [di.xpos[3 * b], di.xpos[3 * b + 1], di.xpos[3 * b + 2]]);
+  ROOM.img = { m, di, n: 0, cmd: roomCmd(), cs: g1Copy(ROOM.cs), t0: d.time, paths: [snap()], snap, ms: 0, x0: Float64Array.from(d.xpos) };
 }
 function roomImagineStep(budget) {
   const im = ROOM.img, t = performance.now();
-  for (let k = 0; k < budget && im.n < IMG_H; k++) {
-    roomControl(im.di, im.cmd); ROOM.mj.mj_step(im.m, im.di); im.n++;
-    if (im.n % 6 === 0) for (let b = 0; b < ROOM.m.nbody; b++) im.paths[b].push([im.di.xpos[3 * b], im.di.xpos[3 * b + 1], im.di.xpos[3 * b + 2]]);
-  }
+  for (let k = 0; k < budget && im.n < IMG_H; k++) { g1Step(im.m, im.di, im.cs, im.cmd); if (++im.n % PATH_EVERY === 0) im.paths.push(im.snap()); }
   im.ms += performance.now() - t;
   if (im.n >= IMG_H) { // publish the prediction
     ROOM.ghost = { gx: Float64Array.from(im.di.geom_xpos), gm: Float64Array.from(im.di.geom_xmat), paths: im.paths };
@@ -2617,68 +2557,68 @@ function roomImagineStep(budget) {
   }
 }
 function roomScore() {
-  const d = ROOM.d; if (!ROOM.pending.length || d.time < ROOM.pending[0].t - 1e-6) return; const p = ROOM.pending.shift();
+  const d = ROOM.d; if (!ROOM.pending.length || d.time < ROOM.pending[0].t - 1e-6) return; const p = ROOM.pending.shift(), I = ROOM.idx, X = d.xpos;
   let err = 0, n = 0;
-  for (let b = 2; b < ROOM.m.nbody; b++) {
-    const i = 3 * b, real = [d.xpos[i], d.xpos[i + 1], d.xpos[i + 2]], pr = [p.pred[i], p.pred[i + 1], p.pred[i + 2]];
-    const movedReal = Math.hypot(real[0] - p.x0[i], real[1] - p.x0[i + 1], real[2] - p.x0[i + 2]), movedPred = Math.hypot(pr[0] - p.x0[i], pr[1] - p.x0[i + 1], pr[2] - p.x0[i + 2]);
-    if (movedReal > .03 || movedPred > .03) { err += Math.hypot(real[0] - pr[0], real[1] - pr[1], real[2] - pr[2]); n++; }
+  for (const b of I.furn) {
+    const i = 3 * b, e = Math.hypot(X[i] - p.pred[i], X[i + 1] - p.pred[i + 1], X[i + 2] - p.pred[i + 2]);
+    if (Math.hypot(X[i] - p.x0[i], X[i + 1] - p.x0[i + 1], X[i + 2] - p.x0[i + 2]) > .03 || Math.hypot(p.pred[i] - p.x0[i], p.pred[i + 1] - p.x0[i + 1], p.pred[i + 2] - p.x0[i + 2]) > .03) { err += e; n++; }
   }
-  const sameCmd = roomCmd().every((v, j) => v === p.cmd[j]);
-  $("#roomErr").textContent = n ? (err / n * 100).toFixed(1) + " cm" : "nothing moving";
-  if (n) $("#roomLog").textContent = err / n < .02 ? `Predicted ${n} moving object${n > 1 ? "s" : ""} to within ${(err / n * 100).toFixed(1)} cm. With an exact model of the world, imagination matches reality.`
-    : !sameCmd ? `Off by ${(err / n * 100).toFixed(1)} cm, but you changed the controls mid-prediction. The model imagined you'd keep doing the same thing.`
-    : $("#roomBad").checked ? `Off by ${(err / n * 100).toFixed(1)} cm: the imperfect model thinks things slide further than they do. This is what a learned world model's error looks like.`
-    : `Off by ${(err / n * 100).toFixed(1)} cm. Contacts are chaotic: tiny differences grow, especially when objects tip.`;
-
+  const ip = 3 * I.pel, robotErr = Math.hypot(X[ip] - p.pred[ip], X[ip + 1] - p.pred[ip + 1]) * 100;
+  const sameCmd = roomCmd().every((v, j) => v === p.cmd[j]), cm = n ? err / n * 100 : 0;
+  $("#roomErr").textContent = `G1 ${robotErr.toFixed(1)} cm` + (n ? ` · objects ${cm.toFixed(1)} cm` : "");
+  const what = n ? `${n} moving object${n > 1 ? "s" : ""} to within ${cm.toFixed(1)} cm` : "its own footsteps";
+  $("#roomLog").textContent = robotErr < 2 && cm < 2 ? `It predicted where it would be (within ${robotErr.toFixed(1)} cm) and ${what}. With an exact model of the world, imagination matches reality.`
+    : !sameCmd ? `Off by ${Math.max(robotErr, cm).toFixed(1)} cm, but you changed the command mid-prediction. It imagined you'd keep doing the same thing.`
+    : $("#roomBad").checked ? `Off by ${Math.max(robotErr, cm).toFixed(1)} cm: the imperfect model thinks the floor and furniture are slipperier than they are. This is what a learned world model's error looks like.`
+    : `Off by ${Math.max(robotErr, cm).toFixed(1)} cm. Contacts are chaotic: tiny differences grow, especially when things tip.`;
 }
 function drawRoom(now) {
   if (!ROOM.r) return;
-  const { mj, m, d, T, r, cam } = ROOM;
+  const { m, d, r, cam } = ROOM, I = ROOM.idx;
   ROOM.acc += Math.min(.05, ROOM.tPrev ? (now - ROOM.tPrev) / 1000 : .016); ROOM.tPrev = now;
-  const cmd = roomCmd();
-  for (let k = 0; ROOM.acc >= m.opt.timestep && k < 8; k++) { roomControl(d, cmd); mj.mj_step(m, d); ROOM.acc -= m.opt.timestep; roomScore(); }
+  const cmd = roomCmd(), t0 = performance.now(); let steps = 0;
+  // real time if the machine keeps up, slow motion if not (never more than ~12 ms of physics per frame)
+  for (; ROOM.acc >= m.opt.timestep && steps < Math.max(4, 12000 / ROOM.stepUs); steps++) { g1Step(m, d, ROOM.cs, cmd); ROOM.acc -= m.opt.timestep; roomScore(); }
+  if (ROOM.acc > .1) ROOM.acc = .1;
+  if (steps) ROOM.stepUs = ROOM.stepUs * .9 + (performance.now() - t0) * 1000 / steps * .1;
+  // the G1 fell? stand it back up after a moment
+  if (d.xpos[3 * I.pel + 2] < .45) { if ((ROOM.fallT += 1 / 60) > 1.5) { g1ResetRobot(false); ROOM.pending = []; ROOM.img = null; $("#roomLog").textContent = "The G1 fell over, so it was stood back up at the start. The policy was trained on flat ground and never saw furniture."; } }
   if (!ROOM.img && d.time - ROOM.lastImg >= IMG_EVERY) { roomImagineStart(); ROOM.lastImg = d.time; }
-  if (ROOM.img) roomImagineStep(IMG_BUDGET);
-
+  if (ROOM.img) roomImagineStep(Math.max(5, Math.round(6000 / ROOM.stepUs)));
   // size
-  const c = $("#roomC"), w = c.clientWidth, h = c.clientHeight;
-  if (r.domElement.width !== Math.round(w * DPR) || r.domElement.height !== Math.round(h * DPR)) { r.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); }
+  const c = $("#roomC"), w = c.clientWidth, h = c.clientHeight, pr = Math.min(DPR, 1.5);
+  if (r.domElement.width !== Math.round(w * pr) || r.domElement.height !== Math.round(h * pr)) { r.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); }
   // real geoms
   const gx = d.geom_xpos, gm = d.geom_xmat;
   const put = (mesh, X, R, i) => { const p = 3 * i, q = 9 * i; mesh.matrix.set(R[q], R[q + 1], R[q + 2], X[p], R[q + 3], R[q + 4], R[q + 5], X[p + 1], R[q + 6], R[q + 7], R[q + 8], X[p + 2], 0, 0, 0, 1); mesh.matrixWorldNeedsUpdate = true; };
-  ROOM.meshes.forEach((mesh, i) => put(mesh, gx, gm, i));
+  ROOM.meshes.forEach((mesh, i) => mesh && put(mesh, gx, gm, i));
   // ghosts and paths from the latest imagination
   const show = $("#roomGhost").checked && ROOM.ghost;
   ROOM.ghosts.forEach(([i, gh]) => {
     if (!show) { gh.visible = false; return; }
-    const p = 3 * i, moved = Math.hypot(ROOM.ghost.gx[p] - gx[p], ROOM.ghost.gx[p + 1] - gx[p + 1], ROOM.ghost.gx[p + 2] - gx[p + 2]);
-    gh.visible = moved > .02; if (gh.visible) put(gh, ROOM.ghost.gx, ROOM.ghost.gm, i);
+    const p = 3 * i; gh.visible = Math.hypot(ROOM.ghost.gx[p] - gx[p], ROOM.ghost.gx[p + 1] - gx[p + 1], ROOM.ghost.gx[p + 2] - gx[p + 2]) > .02;
+    if (gh.visible) put(gh, ROOM.ghost.gx, ROOM.ghost.gm, i);
   });
-  ROOM.lines.forEach((ln, k) => {
-    const b = k + 1, path = show && ROOM.ghost.paths[b];
+  ROOM.lines.forEach(([b, ln], k) => {
+    const path = show && ROOM.ghost.paths.map(s => s[k]);
     if (!path) { ln.visible = false; return; }
-    const span = Math.hypot(path[path.length - 1][0] - path[0][0], path[path.length - 1][1] - path[0][1], path[path.length - 1][2] - path[0][2]);
-    ln.visible = span > .03; if (!ln.visible) return;
-    const a = ln.geometry.attributes.position; path.forEach((pt, j) => a.setXYZ(j, pt[0], pt[1], pt[2] + (b === 1 ? .05 : 0))); a.needsUpdate = true; ln.geometry.setDrawRange(0, path.length);
+    const a = path[0], z = path[path.length - 1]; ln.visible = Math.hypot(z[0] - a[0], z[1] - a[1], z[2] - a[2]) > .03; if (!ln.visible) return;
+    const pos = ln.geometry.attributes.position; path.forEach((pt, j) => pos.setXYZ(j, pt[0], pt[1], b === I.pel ? .02 : pt[2])); pos.needsUpdate = true; ln.geometry.setDrawRange(0, path.length);
   });
-  // lamp light follows the lamp shade
-  const lb = 3 * ROOM.lampBody; ROOM.lampGlow.position.set(d.xpos[lb], d.xpos[lb + 1], d.xpos[lb + 2] + 1.3);
+  const lb = 3 * I.lamp; ROOM.lampGlow.position.set(d.xpos[lb], d.xpos[lb + 1], d.xpos[lb + 2] + 1.3);
   // camera
-  const rb = 3; // robot body xpos
-  if (ROOM.view.follow) {
-    const yaw = d.qpos[2], x = d.xpos[rb], y = d.xpos[rb + 1];
-    cam.position.set(x - 2.4 * Math.cos(yaw), y - 2.4 * Math.sin(yaw), 1.9); cam.lookAt(x + Math.cos(yaw), y + Math.sin(yaw), .5);
-  } else {
-    const { az, el, dist } = ROOM.view; cam.position.set(dist * Math.cos(el) * Math.cos(az), dist * Math.cos(el) * Math.sin(az), .4 + dist * Math.sin(el)); cam.lookAt(0, 0, .4);
-  }
+  const ip = 3 * I.pel, px = d.xpos[ip], py = d.xpos[ip + 1], q = d.qpos, qw = q[I.fq + 3], qz = q[I.fq + 6], qx = q[I.fq + 4], qy = q[I.fq + 5];
+  const yaw = Math.atan2(2 * (qw * qz + qx * qy), 1 - 2 * (qy * qy + qz * qz));
+  if (ROOM.view.follow) { cam.position.set(px - 2.2 * Math.cos(yaw), py - 2.2 * Math.sin(yaw), 1.7); cam.lookAt(px + Math.cos(yaw), py + Math.sin(yaw), .6); }
+  else { const { az, el, dist } = ROOM.view; cam.position.set(dist * Math.cos(el) * Math.cos(az), dist * Math.cos(el) * Math.sin(az), .5 + dist * Math.sin(el)); cam.lookAt(0, 0, .5); }
   r.render(ROOM.scene, cam);
   // stats
-  const xp = d.xpos; let moved = 0;
-  for (let b = 2; b < m.nbody; b++) { const i = 3 * b; if (Math.hypot(xp[i] - ROOM.start[i], xp[i + 1] - ROOM.start[i + 1], xp[i + 2] - ROOM.start[i + 2]) > .1) moved++; }
-  $("#roomMoved").textContent = `${moved} / ${m.nbody - 2}`; $("#roomCon").textContent = d.ncon;
-  roomHud(`<b>MuJoCo</b> t = ${d.time.toFixed(1)} s · ${cmd[0] ? (cmd[0] > 0 ? "forward" : "reverse") : cmd[1] ? "turning" : "idle"}${$("#roomBad").checked ? " · <span style='color:#ff5c9a'>imperfect model</span>" : ""}`);
-  $("#roomPred").textContent = show ? "violet = imagined 1.2 s ahead" : "";
+  const X = d.xpos; let moved = 0;
+  for (const b of I.furn) { const i = 3 * b; if (Math.hypot(X[i] - ROOM.start[i], X[i + 1] - ROOM.start[i + 1], X[i + 2] - ROOM.start[i + 2]) > .1) moved++; }
+  $("#roomMoved").textContent = `${moved} / ${I.furn.length}`; $("#roomCon").textContent = d.ncon;
+  const rt = steps * m.opt.timestep * 60;
+  roomHud(`<b>Unitree G1</b> · ${cmd[0] > 0 ? "walking" : cmd[0] < 0 ? "backing up" : cmd[2] ? "turning" : "stepping in place"} · t = ${d.time.toFixed(1)} s${rt < .85 ? ` · ${Math.round(rt * 100)}% speed` : ""}${$("#roomBad").checked ? " · <span style='color:#ff5c9a'>imperfect model</span>" : ""}`);
+  $("#roomPred").textContent = show ? "violet = imagined 1 s ahead" : "";
 }
 {
   const wrap = $("#roomWrap"), map = { w: "f", arrowup: "f", s: "b", arrowdown: "b", a: "l", arrowleft: "l", d: "r", arrowright: "r" };
@@ -2690,12 +2630,12 @@ function drawRoom(now) {
   c.addEventListener("pointermove", e => { if (!drag || ROOM.view.follow) return; ROOM.view.az = drag[2] - (e.clientX - drag[0]) * .008; ROOM.view.el = Math.max(.12, Math.min(1.45, drag[3] + (e.clientY - drag[1]) * .006)); });
   c.addEventListener("pointerup", () => { drag = null; c.style.cursor = "grab"; });
   // zoom only once the room has focus, so scrolling the deck never gets trapped here
-  c.addEventListener("wheel", e => { if (document.activeElement !== wrap) return; e.preventDefault(); ROOM.view.dist = Math.max(2.5, Math.min(14, ROOM.view.dist * (1 + Math.sign(e.deltaY) * .08))); }, { passive: false });
+  c.addEventListener("wheel", e => { if (document.activeElement !== wrap) return; e.preventDefault(); ROOM.view.dist = Math.max(2, Math.min(14, ROOM.view.dist * (1 + Math.sign(e.deltaY) * .08))); }, { passive: false });
   $$("#roomPad button").forEach(b => {
     const on = v => e => { e.preventDefault(); ROOM.keys[b.dataset.k] = v; b.classList.toggle("on", !!v); };
     b.addEventListener("pointerdown", on(1)); ["pointerup", "pointerleave", "pointercancel"].forEach(ev => b.addEventListener(ev, on(0)));
   });
-  $("#roomReset").onclick = () => { if (!ROOM.m) return; ROOM.mj.mj_resetData(ROOM.m, ROOM.d); ROOM.mj.mj_forward(ROOM.m, ROOM.d); ROOM.img = ROOM.ghost = null; ROOM.pending = []; ROOM.lastImg = -1; $("#roomErr").textContent = "—"; $("#roomLog").textContent = "Room reset."; };
+  $("#roomReset").onclick = () => { if (!ROOM.m) return; g1ResetRobot(true); ROOM.img = ROOM.ghost = null; ROOM.pending = []; ROOM.lastImg = -1; $("#roomErr").textContent = "—"; $("#roomLog").textContent = "Room reset."; };
   $("#roomCam").onclick = () => { ROOM.view.follow = !ROOM.view.follow; $("#roomCam").textContent = "Camera: " + (ROOM.view.follow ? "follow" : "orbit"); };
   new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) roomLoad(); }), { threshold: .15 }).observe($("#room"));
 }

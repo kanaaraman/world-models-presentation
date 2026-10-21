@@ -39,6 +39,7 @@ The deck itself is a single self-contained `index.html` with no build step. A fe
 - Google Fonts (falls back to system fonts offline)
 - MuJoCo 3.14 WebAssembly from `cdn.jsdelivr.net` (about 9 MB, loaded when you reach a MuJoCo scene)
 - three.js 0.160 from `cdn.jsdelivr.net` (for the furnished-room 3D view)
+- When `index.html` is opened from disk, the G1 model, meshes and policy (~3.7 MB) load from the published copy on GitHub Pages
 - Isaac Lab's official interactive demos from `isaac-sim.github.io` (loaded when you click *Launch*)
 - Cosmos and NuRec example GIFs from NVIDIA's download server
 
@@ -77,7 +78,7 @@ Tips:
 | 12 | Isaac Lab | Isaac Lab 3.0's **official browser demos** embedded live (ANYmal-D, G1, Franka lift/drawer/cloth, cartpole, dominoes, MPM), plus throughput bars from Isaac Lab's published benchmarks (up to ~1M env-steps/s) |
 | 13 | Isaac Lab × world models | Three pipelines: Isaac Lab as a data factory for a learned world model, Isaac Lab Mimic → Cosmos Transfer, and model-free RL as the baseline |
 | 14 | Sim-to-real | Train → check in sim → export (LEAPP .onnx) → deploy (Isaac ROS / LeRobot) → test on hardware, plus a **consistency lab**: break input, response or output consistency and watch a "real" arm diverge from the simulated one |
-| 15 | Robot in a furnished room | **Real MuJoCo physics + three.js 3D**: drive a robot (WASD / arrows / on-screen pad) through a living room with a table, chairs, sofa, bookshelf, lamp, boxes and ball. Twice a second it copies the world and imagines 1.2 s ahead (violet ghosts), then scores its prediction. Toggle an *imperfect world model* to see predictions drift. Model file: [`examples/furnished_room.xml`](examples/furnished_room.xml) |
+| 15 | Humanoid in a furnished room | **Unitree G1 humanoid** walking with Unitree's own pretrained LSTM policy (run in JavaScript at 50 Hz) through a living room in **real MuJoCo physics**, rendered with three.js. Walk it with WASD / arrows / the on-screen pad and push the table, chairs, boxes and ball. About once a second it copies the world (controller memory included) and imagines 1 s ahead (violet ghosts), then scores its prediction. Toggle an *imperfect world model* to see predictions drift. Model: [`examples/g1_room.xml`](examples/g1_room.xml) |
 | 16 | Real room → sim | Scan a real space with NVIDIA NuRec, train in its digital twin with Isaac Lab + COMPASS, deploy in the same room. NVIDIA's living-room sample scans, plus an Isaac Lab furniture-scene config sketch |
 | 17 | Software map | Searchable, filterable catalog of 38 tools (open source, open weights, closed, simulators) |
 | 18 | Get started | Six hands-on paths with copyable commands |
@@ -86,14 +87,17 @@ Tips:
 
 ## Python examples
 
-### Furnished room in the MuJoCo viewer
+### Unitree G1 walking in the furnished room (CPU)
+
+[`examples/g1_room_walk.py`](examples/g1_room_walk.py) runs the same G1 and policy as scene 15 (numpy only, no PyTorch):
 
 ```bash
 cd examples
-uv run --with mujoco python -m mujoco.viewer --mjcf=furnished_room.xml
+uv run --with mujoco --with numpy python g1_room_walk.py --view   # walk it yourself: arrow keys, Space = stop
+uv run --with mujoco --with numpy python g1_room_walk.py          # scripted walk, prints a summary
 ```
 
-The robot's actuators are `fx`, `fy` (forces) and `tz` (yaw torque). Use the viewer's control sliders to push it into the furniture.
+There's also a simpler wheeled-robot version of the room, [`examples/furnished_room.xml`](examples/furnished_room.xml). Open it in the viewer with `uv run --with mujoco python -m mujoco.viewer` and drag the file in.
 
 ### MuJoCo: learn a world model and plan with it (CPU, about 1 minute)
 
@@ -125,7 +129,10 @@ It's written against the Isaac Lab 3.0 API (the same calls as Isaac Lab's own ra
 ```
 index.html                        the whole presentation (HTML + CSS + JS, no build)
 examples/ridge-q1.html            Ridge Q1 quadruped simulation (embedded in scene 9)
-examples/furnished_room.xml       MuJoCo living room + mobile robot (scene 15)
+examples/g1_room.xml              MuJoCo living room + Unitree G1 (scene 15)
+examples/g1/                      G1 meshes (simplified), walking policy weights (JSON), Unitree BSD-3 license
+examples/g1_room_walk.py          walk the G1 in the room with the MuJoCo viewer
+examples/furnished_room.xml       the same room with a simple wheeled robot
 examples/mujoco_world_model.py    MuJoCo world-model + MPPI example
 examples/isaaclab_world_model.py  Isaac Lab data-collection + world-model example
 ```
@@ -134,7 +141,11 @@ examples/isaaclab_world_model.py  Isaac Lab data-collection + world-model exampl
 
 - **MuJoCo or furnished-room scene says it couldn't load:** you're probably offline or a firewall blocks `cdn.jsdelivr.net`. Both scenes download their engines (MuJoCo WebAssembly, three.js) from there on first use. If you still see *Failed to fetch* for the room, you have an old copy of `index.html`, so pull the latest version.
 - **Isaac Lab demo stays blank:** it's downloading physics assets, so wait a few seconds. Or use the *open ↗* button to view it in its own tab.
-- **Driving doesn't respond:** click inside the room first so it has keyboard focus. Arrow keys then drive the robot instead of changing scenes. Click outside the room to get scene navigation back.
+- **The G1 doesn't respond:** click inside the room first so it has keyboard focus. Arrow keys then walk the robot instead of changing scenes. Click outside the room to get scene navigation back.
 - **Animations look slow:** background tabs and hidden windows are throttled by the browser. Keep the presentation tab in front.
 
 Facts reflect public information as of October 2026. Check the linked sources for the latest details.
+
+## Credits
+
+The Unitree G1 robot model and walking policy come from [unitree_rl_gym](https://github.com/unitreerobotics/unitree_rl_gym) (BSD-3-Clause, © Unitree Robotics; see [`examples/g1/LICENSE`](examples/g1/LICENSE)). For the web, the visual meshes were decimated, the duplicated mesh collision geoms were replaced with primitives, and the policy weights were exported to JSON.
